@@ -40,6 +40,15 @@ int get_board_y(const int i)
     return i % HEIGHT;
 }
 
+int count_next_choices(void)
+{
+    int i = 0;
+    while (next_choices[i] != -1) {
+        i++;
+    }
+    return i;
+}
+
 void push_next_choices(const int board_i)
 {
     int j = 0;
@@ -125,7 +134,7 @@ void set_board(const char *board_state_str)
     }
 }
 
-void print_next_choices()
+int print_next_choices()
 {
     int j = 0;
     int i = next_choices[j];
@@ -135,6 +144,8 @@ void print_next_choices()
         j++;
         i = next_choices[j];
     }
+    printf("%d\n", count_next_choices());
+    return j;
 }
 
 /* 盤のアイコンを出力する */
