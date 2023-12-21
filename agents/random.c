@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 
 #define PRINT true
 #define SIZE (8)                /* オセロなので8*8 */
@@ -15,14 +16,17 @@ typedef enum board_state {
 } BOARD_STATE;
 
 /* 盤 */
+/* 上下一行ずつ・左右一列ずつを壁とする */
 BOARD_STATE board[WIDTH * HEIGHT];
 
 /* boardで隣へ移動する際に添え字に足す数字（8方位） */
+/* 下, 右下, 右, 右上, 上, 左上, 左, 左下 */
 int directions[8] = { 10, 11, 1, -9, -10, -11, -1, 9 };
 
+/* 次に打つことができる場所*/
 int next_choices[SIZE * SIZE] = { -1 };
 
-/* 2次元座標を受け取りboardの添え字を返す関数 */
+/* 2次元座標を受け取りboardの添え字を返す */
 int get_board_i(const int x, const int y)
 {
     return x * HEIGHT + y;
@@ -121,7 +125,7 @@ void init_board(void)
     }
 }
 
-/* 入力された盤を作成する */
+/* 最初に入力された数字列をboardに落とし込む */
 void set_board(const char *board_state_str)
 {
     int x, y;
@@ -148,7 +152,6 @@ int print_next_choices()
     return j;
 }
 
-/* 盤のアイコンを出力する */
 void print_board_state_icon(const BOARD_STATE state)
 {
     switch (state) {
@@ -170,7 +173,6 @@ void print_board_state_icon(const BOARD_STATE state)
     }
 }
 
-/* 盤の状態を出力する */
 void print_board(void)
 {
     int x, y;
