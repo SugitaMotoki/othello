@@ -2,11 +2,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
+#include <sys/time.h>
 
-#define PRINT true
+#define DEBUG_PRINT true
 #define SIZE (8)                /* オセロなので8*8 */
 #define WIDTH (SIZE + 2)
 #define HEIGHT (SIZE + 2)
+
+/* ランダム値生成で使用する型 */
+struct timeval tv;
 
 typedef enum board_state {
     black,                      /* 0: 黒石 */
@@ -144,11 +148,11 @@ int print_next_choices()
     int i = next_choices[j];
 
     while (i != -1) {
-        printf("(%d, %d)\n", get_board_x(i), get_board_y(i));
+        printf("%d ", i);
         j++;
         i = next_choices[j];
     }
-    printf("%d\n", count_next_choices());
+    printf("\n");
     return j;
 }
 
@@ -195,8 +199,8 @@ void print_board(void)
 
 int main(int argc, char *argv[])
 {
-    int i = 0;
     BOARD_STATE stone;
+    int r = 0;
 
     if (argc != 3) {
         printf("引数不正\n");
@@ -208,17 +212,29 @@ int main(int argc, char *argv[])
     init_board();
     set_board(argv[2]);
 
-    if (PRINT) {
+    if (DEBUG_PRINT) {
         print_board();
         print_board_state_icon(stone);
+        printf(" ← Next\n");
+        print_board_state_icon(1 - stone);
         printf("\n");
     }
 
     search_next_choices(stone);
 
-    if (PRINT) {
+    /* ランダム値生成 */
+    gettimeofday(&tv, NULL);
+    srand(tv.tv_sec + tv.tv_usec);
+    r = (int) (rand() * ((count_next_choices() - 1) + 1.0) /
+               (RAND_MAX + 1.0));
+
+    if (DEBUG_PRINT) {
+        printf("Choices: ");
         print_next_choices();
     }
+
+    printf("%d %d\n", get_board_x(next_choices[r]),
+           get_board_y(next_choices[r]));
 
     return 0;
 }
