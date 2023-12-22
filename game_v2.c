@@ -8,16 +8,16 @@
 #define HEIGHT ((SIZE) + 2)
 
 typedef enum board_state {
-    black,                      /* 0: 黒石 */
-    white,                      /* 1: 白石 */
-    empty,                      /* 2: 空白 */
-    wall                        /* 3: 壁 */
+    BLACK,                      /* 0: 黒石 */
+    WHITE,                      /* 1: 白石 */
+    EMPTY,                      /* 2: 空白 */
+    WALL                        /* 3: 壁 */
 } BOARD_STATE;
 
 typedef enum player_type {
-    human,
-    c_agent,
-    python_agent,
+    HUMAN,
+    C_AGENT,
+    PYTHON_AGENT,
 } PLAYER_TYPE;
 
 typedef struct player {
@@ -68,32 +68,32 @@ static void init_board(void)
     for (x = 0; x < HEIGHT; x++) {
         for (y = 0; y < WIDTH; y++) {
             if (x == 0 || x == HEIGHT - 1 || y == 0 || y == WIDTH - 1) {
-                board[get_board_i(x, y)] = wall;
+                board[get_board_i(x, y)] = WALL;
             } else {
-                board[get_board_i(x, y)] = empty;
+                board[get_board_i(x, y)] = EMPTY;
             }
         }
     }
     /* 初期配置 */
-    board[get_board_i(HEIGHT / 2, WIDTH / 2)] = white;
-    board[get_board_i(HEIGHT / 2 - 1, WIDTH / 2 - 1)] = white;
-    board[get_board_i(HEIGHT / 2 - 1, WIDTH / 2)] = black;
-    board[get_board_i(HEIGHT / 2, WIDTH / 2 - 1)] = black;
+    board[get_board_i(HEIGHT / 2, WIDTH / 2)] = WHITE;
+    board[get_board_i(HEIGHT / 2 - 1, WIDTH / 2 - 1)] = WHITE;
+    board[get_board_i(HEIGHT / 2 - 1, WIDTH / 2)] = BLACK;
+    board[get_board_i(HEIGHT / 2, WIDTH / 2 - 1)] = BLACK;
 }
 
 static void print_board_state_icon(const BOARD_STATE state)
 {
     switch (state) {
-    case black:
+    case BLACK:
         printf("●");
         break;
-    case white:
+    case WHITE:
         printf("○");
         break;
-    case empty:
+    case EMPTY:
         printf(" ");
         break;
-    case wall:
+    case WALL:
         printf("w");
         break;
     default:
@@ -132,9 +132,9 @@ static void proceed_game(PLAYER * player_a, PLAYER * player_b)
 static void set_player(PLAYER * player)
 {
     printf("■ プレイヤータイプを選択\n");
-    printf("   %d: 人間\n", human);
-    printf("   %d: AI（C言語）\n", c_agent);
-    printf("   %d: AI（Python）\n", python_agent);
+    printf("   %d: 人間\n", HUMAN);
+    printf("   %d: AI（C言語）\n", C_AGENT);
+    printf("   %d: AI（Python）\n", PYTHON_AGENT);
     printf(">> ");
     scanf("%d", &player->player_type);
     printf("「%d」が選択されました\n", player->player_type);
@@ -153,8 +153,8 @@ int main(void)
     PLAYER player_b;            /* 後攻 */
     PLAYER winner;
 
-    player_a.stone = black;
-    player_b.stone = white;
+    player_a.stone = BLACK;
+    player_b.stone = WHITE;
 
     printf("== 先攻 ==\n");
     set_player(&player_a);
