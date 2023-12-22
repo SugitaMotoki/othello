@@ -39,7 +39,8 @@ static BOARD_STATE board[WIDTH * HEIGHT];
 /* 下, 右下, 右, 右上, 上, 左上, 左, 左下 */
 static const int directions[8] = { 10, 11, 1, -9, -10, -11, -1, 9 };
 
-/* 次に打つことができる場所*/
+/* 次に打つことができる場所 */
+/* -1は番兵 */
 static int next_choices[SIZE * SIZE] = { -1 };
 
 /* 2次元座標を受け取りboardの添え字を返す */
@@ -48,13 +49,13 @@ static int get_board_i(const int x, const int y)
     return x * HEIGHT + y;
 }
 
-/* boardの添え字を受け取りx座標を返す関数 */
+/* boardの添え字を受け取りx座標を返す */
 static int get_board_x(const int i)
 {
     return i / HEIGHT;
 }
 
-/* boardの添え字を受け取りy座標を返す関数 */
+/* boardの添え字を受け取りy座標を返す */
 static int get_board_y(const int i)
 {
     return i % HEIGHT;
