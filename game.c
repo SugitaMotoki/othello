@@ -229,7 +229,7 @@ int proceed_game()
     printf("Game start!\n\n");
 
     while (is_finished() == false) {
-        if (ADDITIONAL_PRINT == true) {
+        if (ADDITIONAL_PRINT != false) {
             print_info(player);
         }
 
