@@ -2,6 +2,7 @@
 #include <stdbool.h>
 
 #define DEBUG_PRINT (true)
+#define GAME_ANNOUNCEMENT_PRINT (true)
 #define MAX_LENGTH_OF_PLAYER_NAME (30)
 #define SIZE (8)
 #define WIDTH ((SIZE) + 2)
@@ -123,10 +124,33 @@ static void print_board(void)
     }
 }
 
-static void proceed_game(PLAYER * player_a, PLAYER * player_b)
+static void get_location(int *x, int *y)
+{
+    /* 仮の値 */
+    *x = 3;
+    *y = 5;
+}
+
+static bool is_finished()
+{
+    return false;
+}
+
+static void proceed_game(PLAYER * player_a,
+                         PLAYER * player_b, PLAYER * winner)
 {
     int turn_count = 1;
+    PLAYER *current_turn_player;
+
     init_board();
+    while (is_finished() == false) {
+        printf("%d\n", turn_count);
+        current_turn_player = (turn_count % 2 != 0) ? player_a : player_b;
+        if (GAME_ANNOUNCEMENT_PRINT != false) {
+            printf("%sの番です\n", current_turn_player->name);
+        }
+        turn_count++;
+    }
     print_board();
 }
 
@@ -152,7 +176,7 @@ int main(void)
 {
     PLAYER player_a;            /* 先攻 */
     PLAYER player_b;            /* 後攻 */
-    PLAYER winner;
+    PLAYER *winner;
 
     player_a.stone = BLACK;
     player_b.stone = WHITE;
@@ -162,7 +186,7 @@ int main(void)
     printf("== 後攻 ==\n");
     set_player(&player_b);
 
-    proceed_game(&player_a, &player_b);
+    proceed_game(&player_a, &player_b, winner);
 
     return 0;
 }
