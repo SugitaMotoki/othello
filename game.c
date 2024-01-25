@@ -27,6 +27,7 @@ typedef struct player {
     PLAYER_TYPE player_type;
     char name[MAX_LENGTH_OF_PLAYER_NAME];
     int next_choices[SIZE * SIZE];
+    int number_of_stone;
     bool is_passed;
 } PLAYER;
 
@@ -80,6 +81,19 @@ static void init_board(void)
     board[get_board_i(HEIGHT / 2 - 1, WIDTH / 2 - 1)] = WHITE;
     board[get_board_i(HEIGHT / 2 - 1, WIDTH / 2)] = BLACK;
     board[get_board_i(HEIGHT / 2, WIDTH / 2 - 1)] = BLACK;
+}
+
+static void count_stone(PLAYER * player)
+{
+    int x, y, count = 0;
+    for (x = 1; x < HEIGHT - 1; x++) {
+        for (y = 1; y < WIDTH - 1; y++) {
+            if (board[get_board_i(x, y)] == player->stone) {
+                count++;
+            }
+        }
+    }
+    player->number_of_stone = count;
 }
 
 static int print_next_choices(PLAYER * player)
@@ -260,7 +274,7 @@ static bool is_finished(PLAYER * player_a, PLAYER * player_b)
 }
 
 static void proceed_game(PLAYER * player_a,
-                         PLAYER * player_b, PLAYER * winner)
+                         PLAYER * player_b, PLAYER ** winner)
 {
     int turn_count = 0;
     PLAYER *current_turn_player;
@@ -280,6 +294,8 @@ static void proceed_game(PLAYER * player_a,
             printf("石: ");
             print_board_state_icon(current_turn_player->stone);
             printf("\n");
+            printf("獲得数: %d\n",
+                   current_turn_player->number_of_stone);
             printf("置ける場所: ");
             print_next_choices(current_turn_player);
             printf("パス: (%d,%d)\n", get_board_x(PASS_BOARD_I),
@@ -294,14 +310,22 @@ static void proceed_game(PLAYER * player_a,
         } else {
             current_turn_player->is_passed = true;
         }
+        count_stone(player_a);
+        count_stone(player_b);
     }
     if (GAME_ANNOUNCEMENT_PRINT != false) {
         printf("■ ゲーム終了\n");
     }
-    winner = player_a;
+    if (player_a->number_of_stone > player_b->number_of_stone) {
+        *winner = player_a;
+    } else if (player_a->number_of_stone < player_b->number_of_stone) {
+        *winner = player_b;
+    } else {
+        *winner = NULL;
+    }
 }
 
-static void set_player(PLAYER * player)
+static void set_player(PLAYER * player, BOARD_STATE stone)
 {
     printf("<< プレイヤータイプを選択してください\n");
     printf("   %d: 人間\n", HUMAN);
@@ -317,6 +341,8 @@ static void set_player(PLAYER * player)
     scanf("%s", player->name);
     printf("<< %s が入力されました\n", player->name);
     printf("\n");
+    player->stone = stone;
+    player->number_of_stone = 2;
     player->next_choices[0] = -1;	/* 番兵で初期化 */
 }
 
@@ -326,16 +352,19 @@ int main(void)
     PLAYER player_b;            /* 後攻 */
     PLAYER *winner = NULL;
 
-    player_a.stone = BLACK;
-    player_b.stone = WHITE;
-
     printf("■ 初期設定\n");
     printf("== 先攻 ==\n");
-    set_player(&player_a);
+    set_player(&player_a, BLACK);
     printf("== 後攻 ==\n");
-    set_player(&player_b);
+    set_player(&player_b, WHITE);
 
-    proceed_game(&player_a, &player_b, winner);
+    proceed_game(&player_a, &player_b, &winner);
+
+    if (winner != NULL) {
+        printf("<< %sの勝利!\n", winner->name);
+    } else {
+        printf("<< 引き分け\n");
+    }
 
     return 0;
 }
