@@ -82,7 +82,7 @@ static void init_board(void)
     board[get_board_i(HEIGHT / 2, WIDTH / 2 - 1)] = BLACK;
 }
 
-int print_next_choices(PLAYER * player)
+static int print_next_choices(PLAYER * player)
 {
     int j = 0;
     int i = player->next_choices[j];
@@ -96,8 +96,9 @@ int print_next_choices(PLAYER * player)
     return j;
 }
 
-int count_reversibles_in_the_direction(const int x, const int y,
-                                       BOARD_STATE stone, const int dir_i)
+static int count_reversibles_in_the_direction(const int x, const int y,
+                                              BOARD_STATE stone,
+                                              const int dir_i)
 {
     BOARD_STATE current;
     int count = 0;
@@ -115,7 +116,7 @@ int count_reversibles_in_the_direction(const int x, const int y,
     }
 }
 
-bool can_put_stone(const int x, const int y, BOARD_STATE stone)
+static bool can_put_stone(const int x, const int y, BOARD_STATE stone)
 {
     int d;
     if (board[get_board_i(x, y)] != EMPTY) {
@@ -130,7 +131,7 @@ bool can_put_stone(const int x, const int y, BOARD_STATE stone)
     return false;
 }
 
-void push_next_choices(PLAYER * player, const int board_i)
+static void push_next_choices(PLAYER * player, const int board_i)
 {
     int j = 0;
     while (player->next_choices[j] != -1) {
@@ -141,7 +142,7 @@ void push_next_choices(PLAYER * player, const int board_i)
     return;
 }
 
-void search_next_choices(PLAYER * player)
+static void search_next_choices(PLAYER * player)
 {
     int x, y;
     player->next_choices[0] = -1;
@@ -154,9 +155,9 @@ void search_next_choices(PLAYER * player)
     }
 }
 
-void reverse_stone_in_the_direction(const int x, const int y,
-                                    BOARD_STATE stone,
-                                    const int direction_i)
+static void reverse_stone_in_the_direction(const int x, const int y,
+                                           BOARD_STATE stone,
+                                           const int direction_i)
 {
     int i = get_board_i(x, y);
     i += directions[direction_i];
@@ -166,7 +167,7 @@ void reverse_stone_in_the_direction(const int x, const int y,
     }
 }
 
-void reverse_stone(const int x, const int y, BOARD_STATE stone)
+static void reverse_stone(const int x, const int y, BOARD_STATE stone)
 {
     int direction_i;
     for (direction_i = 0; direction_i < 8; direction_i++) {
@@ -177,7 +178,7 @@ void reverse_stone(const int x, const int y, BOARD_STATE stone)
     }
 }
 
-void put_stone(const int x, const int y, BOARD_STATE stone)
+static void put_stone(const int x, const int y, BOARD_STATE stone)
 {
     int i = get_board_i(x, y);
     board[i] = stone;
