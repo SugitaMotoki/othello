@@ -7,6 +7,7 @@
 #define SIZE (8)
 #define WIDTH ((SIZE) + 2)
 #define HEIGHT ((SIZE) + 2)
+#define PASS_BOARD_I (91)
 
 typedef enum board_state {
     BLACK,                      /* 0: 黒石 */
@@ -26,6 +27,7 @@ typedef struct player {
     PLAYER_TYPE player_type;
     char name[MAX_LENGTH_OF_PLAYER_NAME];
     int next_choices[SIZE * SIZE];
+    bool is_passed;
 } PLAYER;
 
 typedef struct game_result {
@@ -223,40 +225,51 @@ static void print_board(void)
     }
 }
 
-static void get_location(PLAYER * player, int *x, int *y)
+/* PASSの場合はfalseを返す*/
+static bool get_location(PLAYER * player, int *x, int *y)
 {
-    if (GAME_ANNOUNCEMENT_PRINT != false) {
-        printf("<< 座標を入力してください（例：3 4）\n");
-    }
     while (true) {
         printf(">> ");
         scanf("%d%d", x, y);
-        if (can_put_stone(*x, *y, player->stone) != false) {
-            break;
-        } else {
+        if (get_board_i(*x, *y) == PASS_BOARD_I) {
+            if (player->next_choices[0] == -1) {
+                return false;
+            } else {
+                printf
+                    ("<< 置ける場所があるためパスできません\n");
+            }
+        } else if (can_put_stone(*x, *y, player->stone) == false) {
             printf("<< ");
             print_board_state_icon(player->stone);
             printf("を(%d,%d)に置くことはできません\n", *x,
                    *y);
+        } else {
+            break;
         }
     }
+    return true;
 }
 
-static bool is_finished()
+static bool is_finished(PLAYER * player_a, PLAYER * player_b)
 {
+    if (player_a->is_passed != false && player_b->is_passed != false) {
+        return true;
+    }
     return false;
 }
 
 static void proceed_game(PLAYER * player_a,
                          PLAYER * player_b, PLAYER * winner)
 {
-    int turn_count = 1;
+    int turn_count = 0;
     PLAYER *current_turn_player;
     int x, y;
+    bool is_passed;
 
     init_board();
     printf("■ ゲーム開始\n");
-    while (is_finished() == false) {
+    while (is_finished(player_a, player_b) == false) {
+        turn_count++;
         current_turn_player = (turn_count % 2 != 0) ? player_a : player_b;
         search_next_choices(current_turn_player);
         if (GAME_ANNOUNCEMENT_PRINT != false) {
@@ -268,10 +281,18 @@ static void proceed_game(PLAYER * player_a,
             printf("\n");
             printf("置ける場所: ");
             print_next_choices(current_turn_player);
+            printf("パス: (%d,%d)\n", get_board_x(PASS_BOARD_I),
+                   get_board_y(PASS_BOARD_I));
+            printf
+                ("<< 座標を入力してください（例：3 4）\n");
         }
-        get_location(current_turn_player, &x, &y);
-        put_stone(x, y, current_turn_player->stone);
-        turn_count++;
+        is_passed = !get_location(current_turn_player, &x, &y);
+        if (is_passed == false) {
+            current_turn_player->is_passed = false;
+            put_stone(x, y, current_turn_player->stone);
+        } else {
+            current_turn_player->is_passed = true;
+        }
     }
     if (GAME_ANNOUNCEMENT_PRINT != false) {
         printf("■ ゲーム終了\n");
