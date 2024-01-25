@@ -170,8 +170,6 @@ void reverse_stone(const int x, const int y, BOARD_STATE stone)
     for (direction_i = 0; direction_i < 8; direction_i++) {
         if (count_reversibles_in_the_direction(x, y, stone, direction_i) !=
             0) {
-            printf("%d, %d\n", x, y);
-            printf("%d\n", direction_i);
             reverse_stone_in_the_direction(x, y, stone, direction_i);
         }
     }
@@ -229,9 +227,19 @@ static void get_location(PLAYER * player, int *x, int *y)
 {
     if (GAME_ANNOUNCEMENT_PRINT != false) {
         printf("<< 座標を入力してください（例：3 4）\n");
-        printf(">> ");
     }
-    scanf("%d%d", x, y);
+    while (true) {
+        printf(">> ");
+        scanf("%d%d", x, y);
+        if (can_put_stone(*x, *y, player->stone) != false) {
+            break;
+        } else {
+            printf("<< ");
+            print_board_state_icon(player->stone);
+            printf("を(%d,%d)に置くことはできません\n", *x,
+                   *y);
+        }
+    }
 }
 
 static bool is_finished()
@@ -262,9 +270,7 @@ static void proceed_game(PLAYER * player_a,
             print_next_choices(current_turn_player);
         }
         get_location(current_turn_player, &x, &y);
-        if (can_put_stone(x, y, current_turn_player->stone) != false) {
-            put_stone(x, y, current_turn_player->stone);
-        }
+        put_stone(x, y, current_turn_player->stone);
         turn_count++;
     }
     if (GAME_ANNOUNCEMENT_PRINT != false) {
