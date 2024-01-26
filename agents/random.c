@@ -8,6 +8,9 @@
 #define SIZE (8)                /* オセロなので8*8 */
 #define WIDTH ((SIZE) + 2)
 #define HEIGHT ((SIZE) + 2)
+#define BOARD_I(X,Y) ((X) * (HEIGHT) + (Y))
+#define BOARD_X(I) ((I) / (HEIGHT))
+#define BOARD_Y(I) ((I) % (HEIGHT))
 
 /* ランダム値生成で使用する型 */
 struct timeval tv;
@@ -30,24 +33,6 @@ int directions[8] = { 10, 11, 1, -9, -10, -11, -1, 9 };
 /* 次に打つことができる場所*/
 int next_choices[SIZE * SIZE] = { -1 };
 
-/* 2次元座標を受け取りboardの添え字を返す */
-static int get_board_i(const int x, const int y)
-{
-    return x * HEIGHT + y;
-}
-
-/* boardの添え字を受け取りx座標を返す関数 */
-static int get_board_x(const int i)
-{
-    return i / HEIGHT;
-}
-
-/* boardの添え字を受け取りy座標を返す関数 */
-static int get_board_y(const int i)
-{
-    return i % HEIGHT;
-}
-
 static int count_next_choices(void)
 {
     int i = 0;
@@ -68,12 +53,12 @@ static void push_next_choices(const int board_i)
     return;
 }
 
-static int count_reversibles_one_dir(const int x, const int y, BOARD_STATE stone,
-                              const int dir_i)
+static int count_reversibles_one_dir(const int x, const int y,
+                                     BOARD_STATE stone, const int dir_i)
 {
     BOARD_STATE current;
     int count = 0;
-    int i = get_board_i(x, y);
+    int i = BOARD_I(x, y);
     while (1) {
         i += directions[dir_i];
         current = board[i];
@@ -90,7 +75,7 @@ static int count_reversibles_one_dir(const int x, const int y, BOARD_STATE stone
 static bool can_put_stone(const int x, const int y, BOARD_STATE stone)
 {
     int d;
-    if (board[get_board_i(x, y)] != EMPTY) {
+    if (board[BOARD_I(x, y)] != EMPTY) {
         return false;
     }
 
@@ -108,7 +93,7 @@ static void search_next_choices(BOARD_STATE stone)
     for (x = 1; x < HEIGHT - 1; x++) {
         for (y = 1; y < WIDTH - 1; y++) {
             if (can_put_stone(x, y, stone)) {
-                push_next_choices(get_board_i(x, y));
+                push_next_choices(BOARD_I(x, y));
             }
         }
     }
@@ -121,9 +106,9 @@ static void init_board(void)
     for (x = 0; x < HEIGHT; x++) {
         for (y = 0; y < WIDTH; y++) {
             if (x == 0 || x == HEIGHT - 1 || y == 0 || y == WIDTH - 1) {
-                board[get_board_i(x, y)] = WALL;
+                board[BOARD_I(x, y)] = WALL;
             } else {
-                board[get_board_i(x, y)] = EMPTY;
+                board[BOARD_I(x, y)] = EMPTY;
             }
         }
     }
@@ -136,7 +121,7 @@ static void set_board(const char *board_state_str)
     int i = 0;
     for (x = 1; x < HEIGHT - 1; x++) {
         for (y = 1; y < WIDTH - 1; y++) {
-            board[get_board_i(x, y)] = board_state_str[i] - '0';
+            board[BOARD_I(x, y)] = board_state_str[i] - '0';
             i++;
         }
     }
@@ -190,7 +175,7 @@ static void print_board(void)
     for (x = 1; x < HEIGHT - 1; x++) {
         printf(" %d|", x);
         for (y = 1; y < WIDTH - 1; y++) {
-            print_board_state_icon(board[get_board_i(x, y)]);
+            print_board_state_icon(board[BOARD_I(x, y)]);
             printf("|");
         }
         printf("\n");
@@ -233,8 +218,7 @@ int main(int argc, char *argv[])
         print_next_choices();
     }
 
-    printf("%d %d\n", get_board_x(next_choices[r]),
-           get_board_y(next_choices[r]));
+    printf("%d %d\n", BOARD_X(next_choices[r]), BOARD_Y(next_choices[r]));
 
     return 0;
 }
