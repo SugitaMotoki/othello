@@ -31,24 +31,24 @@ int directions[8] = { 10, 11, 1, -9, -10, -11, -1, 9 };
 int next_choices[SIZE * SIZE] = { -1 };
 
 /* 2次元座標を受け取りboardの添え字を返す */
-int get_board_i(const int x, const int y)
+static int get_board_i(const int x, const int y)
 {
     return x * HEIGHT + y;
 }
 
 /* boardの添え字を受け取りx座標を返す関数 */
-int get_board_x(const int i)
+static int get_board_x(const int i)
 {
     return i / HEIGHT;
 }
 
 /* boardの添え字を受け取りy座標を返す関数 */
-int get_board_y(const int i)
+static int get_board_y(const int i)
 {
     return i % HEIGHT;
 }
 
-int count_next_choices(void)
+static int count_next_choices(void)
 {
     int i = 0;
     while (next_choices[i] != -1) {
@@ -57,7 +57,7 @@ int count_next_choices(void)
     return i;
 }
 
-void push_next_choices(const int board_i)
+static void push_next_choices(const int board_i)
 {
     int j = 0;
     while (next_choices[j] != -1) {
@@ -68,7 +68,7 @@ void push_next_choices(const int board_i)
     return;
 }
 
-int count_reversibles_one_dir(const int x, const int y, BOARD_STATE stone,
+static int count_reversibles_one_dir(const int x, const int y, BOARD_STATE stone,
                               const int dir_i)
 {
     BOARD_STATE current;
@@ -87,7 +87,7 @@ int count_reversibles_one_dir(const int x, const int y, BOARD_STATE stone,
     }
 }
 
-bool can_put_stone(const int x, const int y, BOARD_STATE stone)
+static bool can_put_stone(const int x, const int y, BOARD_STATE stone)
 {
     int d;
     if (board[get_board_i(x, y)] != EMPTY) {
@@ -102,7 +102,7 @@ bool can_put_stone(const int x, const int y, BOARD_STATE stone)
     return false;
 }
 
-void search_next_choices(BOARD_STATE stone)
+static void search_next_choices(BOARD_STATE stone)
 {
     int x, y, d;
     for (x = 1; x < HEIGHT - 1; x++) {
@@ -115,7 +115,7 @@ void search_next_choices(BOARD_STATE stone)
 }
 
 /* 盤を空白と壁で初期化する */
-void init_board(void)
+static void init_board(void)
 {
     int x, y;
     for (x = 0; x < HEIGHT; x++) {
@@ -130,7 +130,7 @@ void init_board(void)
 }
 
 /* 最初に入力された数字列をboardに落とし込む */
-void set_board(const char *board_state_str)
+static void set_board(const char *board_state_str)
 {
     int x, y;
     int i = 0;
@@ -142,7 +142,7 @@ void set_board(const char *board_state_str)
     }
 }
 
-int print_next_choices()
+static int print_next_choices()
 {
     int j = 0;
     int i = next_choices[j];
@@ -156,7 +156,7 @@ int print_next_choices()
     return j;
 }
 
-void print_board_state_icon(const BOARD_STATE state)
+static void print_board_state_icon(const BOARD_STATE state)
 {
     switch (state) {
     case BLACK:
@@ -177,7 +177,7 @@ void print_board_state_icon(const BOARD_STATE state)
     }
 }
 
-void print_board(void)
+static void print_board(void)
 {
     int x, y;
 
