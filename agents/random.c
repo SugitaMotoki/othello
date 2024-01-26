@@ -13,10 +13,10 @@
 struct timeval tv;
 
 typedef enum board_state {
-    empty,                      /* 0: 空白 */
-    white,                      /* 1: 白石 */
-    black,                      /* 2: 黒石 */
-    wall                        /* 3: 壁 */
+    EMPTY,                      /* 0: 空白 */
+    WHITE,                      /* 1: 白石 */
+    BLACK,                      /* 2: 黒石 */
+    WALL                        /* 3: 壁 */
 } BOARD_STATE;
 
 /* 盤 */
@@ -77,7 +77,7 @@ int count_reversibles_one_dir(const int x, const int y, BOARD_STATE stone,
     while (1) {
         i += directions[dir_i];
         current = board[i];
-        if (current == empty || current == wall) {
+        if (current == EMPTY || current == WALL) {
             return 0;
         } else if (current == stone) {
             return count;
@@ -90,7 +90,7 @@ int count_reversibles_one_dir(const int x, const int y, BOARD_STATE stone,
 bool can_put_stone(const int x, const int y, BOARD_STATE stone)
 {
     int d;
-    if (board[get_board_i(x, y)] != empty) {
+    if (board[get_board_i(x, y)] != EMPTY) {
         return false;
     }
 
@@ -121,9 +121,9 @@ void init_board(void)
     for (x = 0; x < HEIGHT; x++) {
         for (y = 0; y < WIDTH; y++) {
             if (x == 0 || x == HEIGHT - 1 || y == 0 || y == WIDTH - 1) {
-                board[get_board_i(x, y)] = wall;
+                board[get_board_i(x, y)] = WALL;
             } else {
-                board[get_board_i(x, y)] = empty;
+                board[get_board_i(x, y)] = EMPTY;
             }
         }
     }
@@ -159,16 +159,16 @@ int print_next_choices()
 void print_board_state_icon(const BOARD_STATE state)
 {
     switch (state) {
-    case black:
+    case BLACK:
         printf("●");
         break;
-    case white:
+    case WHITE:
         printf("○");
         break;
-    case empty:
+    case EMPTY:
         printf(" ");
         break;
-    case wall:
+    case WALL:
         printf("w");
         break;
     default:
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
         print_board();
         print_board_state_icon(stone);
         printf(" ← Next\n");
-        print_board_state_icon(black + white - stone);
+        print_board_state_icon(BLACK + WHITE - stone);
         printf("\n");
     }
 
