@@ -7,6 +7,9 @@
 #define SIZE (8)
 #define WIDTH ((SIZE) + 2)
 #define HEIGHT ((SIZE) + 2)
+#define BOARD_I(X,Y) ((X) * (HEIGHT) + (Y))
+#define BOARD_X(I) ((I) / (HEIGHT))
+#define BOARD_Y(I) ((I) % (HEIGHT))
 #define PASS_BOARD_I (91)
 
 typedef enum board_state {
@@ -44,24 +47,6 @@ static BOARD_STATE board[WIDTH * HEIGHT];
 /* 下, 右下, 右, 右上, 上, 左上, 左, 左下 */
 static const int directions[8] = { 10, 11, 1, -9, -10, -11, -1, 9 };
 
-/* 2次元座標を受け取りboardの添え字を返す */
-static int get_board_i(const int x, const int y)
-{
-    return x * HEIGHT + y;
-}
-
-/* boardの添え字を受け取りx座標を返す */
-static int get_board_x(const int i)
-{
-    return i / HEIGHT;
-}
-
-/* boardの添え字を受け取りy座標を返す */
-static int get_board_y(const int i)
-{
-    return i % HEIGHT;
-}
-
 /* 盤を初期化する */
 static void init_board(void)
 {
@@ -70,17 +55,17 @@ static void init_board(void)
     for (x = 0; x < HEIGHT; x++) {
         for (y = 0; y < WIDTH; y++) {
             if (x == 0 || x == HEIGHT - 1 || y == 0 || y == WIDTH - 1) {
-                board[get_board_i(x, y)] = WALL;
+                board[BOARD_I(x, y)] = WALL;
             } else {
-                board[get_board_i(x, y)] = EMPTY;
+                board[BOARD_I(x, y)] = EMPTY;
             }
         }
     }
     /* 初期配置 */
-    board[get_board_i(HEIGHT / 2, WIDTH / 2)] = WHITE;
-    board[get_board_i(HEIGHT / 2 - 1, WIDTH / 2 - 1)] = WHITE;
-    board[get_board_i(HEIGHT / 2 - 1, WIDTH / 2)] = BLACK;
-    board[get_board_i(HEIGHT / 2, WIDTH / 2 - 1)] = BLACK;
+    board[BOARD_I(HEIGHT / 2, WIDTH / 2)] = WHITE;
+    board[BOARD_I(HEIGHT / 2 - 1, WIDTH / 2 - 1)] = WHITE;
+    board[BOARD_I(HEIGHT / 2 - 1, WIDTH / 2)] = BLACK;
+    board[BOARD_I(HEIGHT / 2, WIDTH / 2 - 1)] = BLACK;
 }
 
 static void count_stone(PLAYER * player)
@@ -88,7 +73,7 @@ static void count_stone(PLAYER * player)
     int x, y, count = 0;
     for (x = 1; x < HEIGHT - 1; x++) {
         for (y = 1; y < WIDTH - 1; y++) {
-            if (board[get_board_i(x, y)] == player->stone) {
+            if (board[BOARD_I(x, y)] == player->stone) {
                 count++;
             }
         }
@@ -102,7 +87,7 @@ static int print_next_choices(PLAYER * player)
     int i = player->next_choices[j];
 
     while (i != -1) {
-        printf("(%d,%d) ", get_board_x(i), get_board_y(i));
+        printf("(%d,%d) ", BOARD_X(i), BOARD_Y(i));
         j++;
         i = player->next_choices[j];
     }
@@ -116,7 +101,7 @@ static int count_reversibles_in_the_direction(const int x, const int y,
 {
     BOARD_STATE current;
     int count = 0;
-    int i = get_board_i(x, y);
+    int i = BOARD_I(x, y);
     while (1) {
         i += directions[dir_i];
         current = board[i];
@@ -133,7 +118,7 @@ static int count_reversibles_in_the_direction(const int x, const int y,
 static bool can_put_stone(const int x, const int y, BOARD_STATE stone)
 {
     int d;
-    if (board[get_board_i(x, y)] != EMPTY) {
+    if (board[BOARD_I(x, y)] != EMPTY) {
         return false;
     }
 
@@ -163,7 +148,7 @@ static void search_next_choices(PLAYER * player)
     for (x = 1; x < HEIGHT - 1; x++) {
         for (y = 1; y < WIDTH - 1; y++) {
             if (can_put_stone(x, y, player->stone) != false) {
-                push_next_choices(player, get_board_i(x, y));
+                push_next_choices(player, BOARD_I(x, y));
             }
         }
     }
@@ -173,7 +158,7 @@ static void reverse_stone_in_the_direction(const int x, const int y,
                                            BOARD_STATE stone,
                                            const int direction_i)
 {
-    int i = get_board_i(x, y);
+    int i = BOARD_I(x, y);
     i += directions[direction_i];
     while (board[i] != stone) {
         board[i] = stone;
@@ -194,7 +179,7 @@ static void reverse_stone(const int x, const int y, BOARD_STATE stone)
 
 static void put_stone(const int x, const int y, BOARD_STATE stone)
 {
-    int i = get_board_i(x, y);
+    int i = BOARD_I(x, y);
     board[i] = stone;
     reverse_stone(x, y, stone);
 }
@@ -233,7 +218,7 @@ static void print_board(void)
     for (x = 1; x < HEIGHT - 1; x++) {
         printf(" %d|", x);
         for (y = 1; y < WIDTH - 1; y++) {
-            print_board_state_icon(board[get_board_i(x, y)]);
+            print_board_state_icon(board[BOARD_I(x, y)]);
             printf("|");
         }
         printf("\n");
@@ -246,7 +231,7 @@ static bool get_location(PLAYER * player, int *x, int *y)
     while (true) {
         printf(">> ");
         scanf("%d%d", x, y);
-        if (get_board_i(*x, *y) == PASS_BOARD_I) {
+        if (BOARD_I(*x, *y) == PASS_BOARD_I) {
             if (player->next_choices[0] == -1) {
                 return false;
             } else {
@@ -298,8 +283,8 @@ static void proceed_game(PLAYER * player_a,
                    current_turn_player->number_of_stone);
             printf("置ける場所: ");
             print_next_choices(current_turn_player);
-            printf("パス: (%d,%d)\n", get_board_x(PASS_BOARD_I),
-                   get_board_y(PASS_BOARD_I));
+            printf("パス: (%d,%d)\n", BOARD_X(PASS_BOARD_I),
+                   BOARD_Y(PASS_BOARD_I));
             printf
                 ("<< 座標を入力してください（例：3 4）\n");
         }
