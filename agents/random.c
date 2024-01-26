@@ -187,15 +187,15 @@ int main(int argc, char *argv[])
     BOARD_STATE stone;
     int r = 0;
 
-    if (argc != 3) {
+    if (argc != 2) {
         printf("引数不正\n");
         exit(1);
     }
 
-    stone = argv[1][0] - '0';
+    stone = argv[1][65] - '0';
 
     init_board();
-    set_board(argv[2]);
+    set_board(argv[1]);
 
     if (DEBUG_PRINT) {
         print_board();
