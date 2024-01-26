@@ -6,8 +6,8 @@
 
 #define DEBUG_PRINT true
 #define SIZE (8)                /* オセロなので8*8 */
-#define WIDTH (SIZE + 2)
-#define HEIGHT (SIZE + 2)
+#define WIDTH ((SIZE) + 2)
+#define HEIGHT ((SIZE) + 2)
 
 /* ランダム値生成で使用する型 */
 struct timeval tv;
