@@ -133,7 +133,7 @@ static int print_next_choices()
     int i = next_choices[j];
 
     while (i != -1) {
-        printf("%d ", i);
+        printf("(%d,%d) ", BOARD_X(i) - 1, BOARD_Y(i) - 1);
         j++;
         i = next_choices[j];
     }
@@ -168,12 +168,12 @@ static void print_board(void)
 
     printf("  y\nx ");
     for (y = 1; y < WIDTH - 1; y++) {
-        printf(" %d", y);
+        printf(" %d", y - 1);
     }
     printf("\n");
 
     for (x = 1; x < HEIGHT - 1; x++) {
-        printf(" %d|", x);
+        printf(" %d|", x - 1);
         for (y = 1; y < WIDTH - 1; y++) {
             print_board_state_icon(board[BOARD_I(x, y)]);
             printf("|");
@@ -185,7 +185,10 @@ static void print_board(void)
 int main(int argc, char *argv[])
 {
     BOARD_STATE stone;
-    int r = 0;
+    int random_i = 0;
+    int next_i;
+    int next_x;
+    int next_y;
 
     if (argc != 2) {
         printf("引数不正\n");
@@ -210,15 +213,20 @@ int main(int argc, char *argv[])
     /* ランダム値生成 */
     gettimeofday(&tv, NULL);
     srand(tv.tv_sec + tv.tv_usec);
-    r = (int) (rand() * ((count_next_choices() - 1) + 1.0) /
-               (RAND_MAX + 1.0));
+    random_i = (int) (rand() * ((count_next_choices() - 1) + 1.0) /
+                      (RAND_MAX + 1.0));
+
+    next_i = next_choices[random_i];
+    next_x = BOARD_X(next_i) - 1;
+    next_y = BOARD_Y(next_i) - 1;
 
     if (DEBUG_PRINT) {
         printf("Choices: ");
         print_next_choices();
     }
 
-    printf("%d %d\n", BOARD_X(next_choices[r]), BOARD_Y(next_choices[r]));
+    /* JSONでの結果出力 */
+    printf("{x:%d,y:%d}\n", next_x, next_y);
 
     return 0;
 }
