@@ -1,4 +1,4 @@
-game: random.c
+random: random.c
 				gcc -o random random.c
 
 .PHONY: indent

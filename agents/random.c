@@ -13,9 +13,9 @@
 struct timeval tv;
 
 typedef enum board_state {
-    black,                      /* 0: 黒石 */
+    empty,                      /* 0: 空白 */
     white,                      /* 1: 白石 */
-    empty,                      /* 2: 空白 */
+    black,                      /* 2: 黒石 */
     wall                        /* 3: 壁 */
 } BOARD_STATE;
 
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
         print_board();
         print_board_state_icon(stone);
         printf(" ← Next\n");
-        print_board_state_icon(1 - stone);
+        print_board_state_icon(black + white - stone);
         printf("\n");
     }
 
