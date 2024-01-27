@@ -4,7 +4,7 @@
 #include <time.h>
 #include <sys/time.h>
 
-#define DEBUG_PRINT true
+#define DEBUG_PRINT false
 #define SIZE (8)                /* オセロなので8*8 */
 #define WIDTH ((SIZE) + 2)
 #define HEIGHT ((SIZE) + 2)
@@ -210,15 +210,20 @@ int main(int argc, char *argv[])
 
     search_next_choices(stone);
 
-    /* ランダム値生成 */
-    gettimeofday(&tv, NULL);
-    srand(tv.tv_sec + tv.tv_usec);
-    random_i = (int) (rand() * ((count_next_choices() - 1) + 1.0) /
-                      (RAND_MAX + 1.0));
+    if (next_choices[0] != -1) {
+        /* ランダム値生成 */
+        gettimeofday(&tv, NULL);
+        srand(tv.tv_sec + tv.tv_usec);
+        random_i = (int) (rand() * ((count_next_choices() - 1) + 1.0) /
+                          (RAND_MAX + 1.0));
 
-    next_i = next_choices[random_i];
-    next_x = BOARD_X(next_i) - 1;
-    next_y = BOARD_Y(next_i) - 1;
+        next_i = next_choices[random_i];
+        next_x = BOARD_X(next_i) - 1;
+        next_y = BOARD_Y(next_i) - 1;
+    } else {
+        next_x = 8;
+        next_y = 0;
+    }
 
     if (DEBUG_PRINT) {
         printf("Choices: ");
