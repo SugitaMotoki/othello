@@ -1,10 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 
 #define DEBUG_PRINT (true)
 #define GAME_ANNOUNCEMENT_PRINT (true)
 #define MAX_LENGTH_OF_PLAYER_NAME (32)
 #define MAX_LENGTH_OF_AGENT_NAME (32)
+#define MAX_LENGTH_OF_COMMAND (128)
+#define MAX_LENGTH_OF_JSON (16)
 #define SIZE (8)
 #define WIDTH ((SIZE) + 2)
 #define HEIGHT ((SIZE) + 2)
@@ -222,14 +226,81 @@ static void print_board(void)
     }
 }
 
+static void get_board_str(char *board_str)
+{
+    int x, y, i = 0;
+    for (x = 1; x < HEIGHT - 1; x++) {
+        for (y = 1; y < WIDTH - 1; y++) {
+            board_str[i] = board[BOARD_I(x, y)] + '0';
+            i++;
+        }
+    }
+}
+
+static void get_location_from_python_agent(int *x, int *y)
+{
+    fprintf(stderr, "実装されていません\n");
+    exit(-1);
+}
+
+static void get_location_from_c_agent(PLAYER * player, int *x, int *y)
+{
+    FILE *fp;
+    char board_str[SIZE * SIZE] = "";
+    char command[MAX_LENGTH_OF_COMMAND];
+    char move_json[MAX_LENGTH_OF_JSON] = "";
+
+    get_board_str(board_str);
+    snprintf(command, MAX_LENGTH_OF_COMMAND, "./agents/%s %s,%d",
+             player->agent_name, board_str, player->stone);
+
+    fp = popen(command, "r");
+    if (fp == NULL) {
+        perror("popen failed");
+        exit(-1);
+    }
+    fgets(move_json, MAX_LENGTH_OF_JSON, fp);
+    pclose(fp);
+
+    /* {x:?,y:?} */
+    *x = move_json[3] - '0';
+    *y = move_json[7] - '0';
+}
+
+static void get_location_from_stdio(int *x, int *y)
+{
+    scanf("%d%d", x, y);
+}
+
+static void get_location(PLAYER * player, int *x, int *y)
+{
+    printf(">> ");
+
+    switch (player->player_type) {
+    case HUMAN:
+        get_location_from_stdio(x, y);
+        break;
+    case C_AGENT:
+        get_location_from_c_agent(player, x, y);
+        break;
+    case PYTHON_AGENT:
+        get_location_from_python_agent(x, y);
+        break;
+    default:
+        fprintf(stderr,
+                "エージェントが正しく設定されていません\n");
+        exit(-1);
+    }
+
+    (*x)++;
+    (*y)++;
+}
+
 /* PASSの場合はfalseを返す*/
-static bool get_location(PLAYER * player, int *x, int *y)
+static bool determine_next_move(PLAYER * player, int *x, int *y)
 {
     while (true) {
-        printf(">> ");
-        scanf("%d%d", x, y);
-        (*x)++;
-        (*y)++;
+        get_location(player, x, y);
         if (BOARD_I(*x, *y) == PASS_BOARD_I) {
             if (player->next_choices[0] == -1) {
                 return false;
@@ -288,7 +359,7 @@ static void proceed_game(PLAYER * player_a,
             printf
                 ("<< 座標を入力してください（例：2 3）\n");
         }
-        is_passed = !get_location(current_turn_player, &x, &y);
+        is_passed = !determine_next_move(current_turn_player, &x, &y);
         if (is_passed == false) {
             current_turn_player->is_passed = false;
             put_stone(x, y, current_turn_player->stone);
