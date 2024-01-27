@@ -1,18 +1,26 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <stdbool.h>
 
 #define DEBUG_PRINT (true)
 #define GAME_ANNOUNCEMENT_PRINT (true)
-#define MAX_LENGTH_OF_PLAYER_NAME (30)
+#define MAX_LENGTH_OF_PLAYER_NAME (32)
+#define MAX_LENGTH_OF_AGENT_NAME (32)
+#define MAX_LENGTH_OF_COMMAND (256)
+#define MAX_LENGTH_OF_JSON (32)
 #define SIZE (8)
 #define WIDTH ((SIZE) + 2)
 #define HEIGHT ((SIZE) + 2)
+#define BOARD_I(X,Y) ((X) * (HEIGHT) + (Y))
+#define BOARD_X(I) ((I) / (HEIGHT))
+#define BOARD_Y(I) ((I) % (HEIGHT))
 #define PASS_BOARD_I (91)
 
 typedef enum board_state {
-    BLACK,                      /* 0: 黒石 */
+    EMPTY,                      /* 0: 空白 */
     WHITE,                      /* 1: 白石 */
-    EMPTY,                      /* 2: 空白 */
+    BLACK,                      /* 2: 黒石 */
     WALL                        /* 3: 壁 */
 } BOARD_STATE;
 
@@ -25,16 +33,12 @@ typedef enum player_type {
 typedef struct player {
     BOARD_STATE stone;
     PLAYER_TYPE player_type;
-    char name[MAX_LENGTH_OF_PLAYER_NAME];
+    char player_name[MAX_LENGTH_OF_PLAYER_NAME];
+    char agent_name[MAX_LENGTH_OF_AGENT_NAME];
     int next_choices[SIZE * SIZE];
     int number_of_stone;
     bool is_passed;
 } PLAYER;
-
-typedef struct game_result {
-    PLAYER winner;
-    int turn_count;
-} GAME_RESTLT;
 
 /* 盤 */
 /* 上下一行ずつ・左右一列ずつを壁とする */
@@ -44,24 +48,6 @@ static BOARD_STATE board[WIDTH * HEIGHT];
 /* 下, 右下, 右, 右上, 上, 左上, 左, 左下 */
 static const int directions[8] = { 10, 11, 1, -9, -10, -11, -1, 9 };
 
-/* 2次元座標を受け取りboardの添え字を返す */
-static int get_board_i(const int x, const int y)
-{
-    return x * HEIGHT + y;
-}
-
-/* boardの添え字を受け取りx座標を返す */
-static int get_board_x(const int i)
-{
-    return i / HEIGHT;
-}
-
-/* boardの添え字を受け取りy座標を返す */
-static int get_board_y(const int i)
-{
-    return i % HEIGHT;
-}
-
 /* 盤を初期化する */
 static void init_board(void)
 {
@@ -70,17 +56,17 @@ static void init_board(void)
     for (x = 0; x < HEIGHT; x++) {
         for (y = 0; y < WIDTH; y++) {
             if (x == 0 || x == HEIGHT - 1 || y == 0 || y == WIDTH - 1) {
-                board[get_board_i(x, y)] = WALL;
+                board[BOARD_I(x, y)] = WALL;
             } else {
-                board[get_board_i(x, y)] = EMPTY;
+                board[BOARD_I(x, y)] = EMPTY;
             }
         }
     }
     /* 初期配置 */
-    board[get_board_i(HEIGHT / 2, WIDTH / 2)] = WHITE;
-    board[get_board_i(HEIGHT / 2 - 1, WIDTH / 2 - 1)] = WHITE;
-    board[get_board_i(HEIGHT / 2 - 1, WIDTH / 2)] = BLACK;
-    board[get_board_i(HEIGHT / 2, WIDTH / 2 - 1)] = BLACK;
+    board[BOARD_I(HEIGHT / 2, WIDTH / 2)] = WHITE;
+    board[BOARD_I(HEIGHT / 2 - 1, WIDTH / 2 - 1)] = WHITE;
+    board[BOARD_I(HEIGHT / 2 - 1, WIDTH / 2)] = BLACK;
+    board[BOARD_I(HEIGHT / 2, WIDTH / 2 - 1)] = BLACK;
 }
 
 static void count_stone(PLAYER * player)
@@ -88,7 +74,7 @@ static void count_stone(PLAYER * player)
     int x, y, count = 0;
     for (x = 1; x < HEIGHT - 1; x++) {
         for (y = 1; y < WIDTH - 1; y++) {
-            if (board[get_board_i(x, y)] == player->stone) {
+            if (board[BOARD_I(x, y)] == player->stone) {
                 count++;
             }
         }
@@ -102,7 +88,7 @@ static int print_next_choices(PLAYER * player)
     int i = player->next_choices[j];
 
     while (i != -1) {
-        printf("(%d,%d) ", get_board_x(i), get_board_y(i));
+        printf("(%d,%d) ", BOARD_X(i) - 1, BOARD_Y(i) - 1);
         j++;
         i = player->next_choices[j];
     }
@@ -116,7 +102,7 @@ static int count_reversibles_in_the_direction(const int x, const int y,
 {
     BOARD_STATE current;
     int count = 0;
-    int i = get_board_i(x, y);
+    int i = BOARD_I(x, y);
     while (1) {
         i += directions[dir_i];
         current = board[i];
@@ -133,7 +119,7 @@ static int count_reversibles_in_the_direction(const int x, const int y,
 static bool can_put_stone(const int x, const int y, BOARD_STATE stone)
 {
     int d;
-    if (board[get_board_i(x, y)] != EMPTY) {
+    if (board[BOARD_I(x, y)] != EMPTY) {
         return false;
     }
 
@@ -163,7 +149,7 @@ static void search_next_choices(PLAYER * player)
     for (x = 1; x < HEIGHT - 1; x++) {
         for (y = 1; y < WIDTH - 1; y++) {
             if (can_put_stone(x, y, player->stone) != false) {
-                push_next_choices(player, get_board_i(x, y));
+                push_next_choices(player, BOARD_I(x, y));
             }
         }
     }
@@ -173,7 +159,7 @@ static void reverse_stone_in_the_direction(const int x, const int y,
                                            BOARD_STATE stone,
                                            const int direction_i)
 {
-    int i = get_board_i(x, y);
+    int i = BOARD_I(x, y);
     i += directions[direction_i];
     while (board[i] != stone) {
         board[i] = stone;
@@ -194,7 +180,7 @@ static void reverse_stone(const int x, const int y, BOARD_STATE stone)
 
 static void put_stone(const int x, const int y, BOARD_STATE stone)
 {
-    int i = get_board_i(x, y);
+    int i = BOARD_I(x, y);
     board[i] = stone;
     reverse_stone(x, y, stone);
 }
@@ -226,27 +212,96 @@ static void print_board(void)
 
     printf("  y\nx ");
     for (y = 1; y < WIDTH - 1; y++) {
-        printf(" %d", y);
+        printf(" %d", y - 1);
     }
     printf("\n");
 
     for (x = 1; x < HEIGHT - 1; x++) {
-        printf(" %d|", x);
+        printf(" %d|", x - 1);
         for (y = 1; y < WIDTH - 1; y++) {
-            print_board_state_icon(board[get_board_i(x, y)]);
+            print_board_state_icon(board[BOARD_I(x, y)]);
             printf("|");
         }
         printf("\n");
     }
 }
 
+static void get_board_str(char *board_str)
+{
+    int x, y, i = 0;
+    for (x = 1; x < HEIGHT - 1; x++) {
+        for (y = 1; y < WIDTH - 1; y++) {
+            board_str[i] = board[BOARD_I(x, y)] + '0';
+            i++;
+        }
+    }
+}
+
+static void get_location_from_python_agent(int *x, int *y)
+{
+    fprintf(stderr, "実装されていません\n");
+    exit(-1);
+}
+
+static void get_location_from_c_agent(PLAYER * player, int *x, int *y)
+{
+    FILE *fp;
+    char board_str[SIZE * SIZE + 1] = "";
+    char command[MAX_LENGTH_OF_COMMAND];
+    char move_json[MAX_LENGTH_OF_JSON] = "";
+
+    get_board_str(board_str);
+    snprintf(command, MAX_LENGTH_OF_COMMAND, "./agents/%s %s,%d",
+             player->agent_name, board_str, player->stone);
+
+    fp = popen(command, "r");
+    if (fp == NULL) {
+        perror("popen failed");
+        exit(-1);
+    }
+    fgets(move_json, MAX_LENGTH_OF_JSON, fp);
+    pclose(fp);
+
+    /* {x:?,y:?} */
+    *x = move_json[3] - '0';
+    *y = move_json[7] - '0';
+}
+
+static void get_location_from_stdio(int *x, int *y)
+{
+    scanf("%d%d", x, y);
+}
+
+static void get_location(PLAYER * player, int *x, int *y)
+{
+    printf(">> ");
+
+    switch (player->player_type) {
+    case HUMAN:
+        get_location_from_stdio(x, y);
+        break;
+    case C_AGENT:
+        get_location_from_c_agent(player, x, y);
+        break;
+    case PYTHON_AGENT:
+        get_location_from_python_agent(x, y);
+        break;
+    default:
+        fprintf(stderr,
+                "エージェントが正しく設定されていません\n");
+        exit(-1);
+    }
+
+    (*x)++;
+    (*y)++;
+}
+
 /* PASSの場合はfalseを返す*/
-static bool get_location(PLAYER * player, int *x, int *y)
+static bool determine_next_move(PLAYER * player, int *x, int *y)
 {
     while (true) {
-        printf(">> ");
-        scanf("%d%d", x, y);
-        if (get_board_i(*x, *y) == PASS_BOARD_I) {
+        get_location(player, x, y);
+        if (BOARD_I(*x, *y) == PASS_BOARD_I) {
             if (player->next_choices[0] == -1) {
                 return false;
             } else {
@@ -256,8 +311,8 @@ static bool get_location(PLAYER * player, int *x, int *y)
         } else if (can_put_stone(*x, *y, player->stone) == false) {
             printf("<< ");
             print_board_state_icon(player->stone);
-            printf("を(%d,%d)に置くことはできません\n", *x,
-                   *y);
+            printf("を(%d,%d)に置くことはできません\n", *x - 1,
+                   *y - 1);
         } else {
             break;
         }
@@ -290,7 +345,8 @@ static void proceed_game(PLAYER * player_a,
         if (GAME_ANNOUNCEMENT_PRINT != false) {
             printf("== ターン: %d ==\n", turn_count);
             print_board();
-            printf("プレイヤー: %s\n", current_turn_player->name);
+            printf("プレイヤー: %s\n",
+                   current_turn_player->player_name);
             printf("石: ");
             print_board_state_icon(current_turn_player->stone);
             printf("\n");
@@ -298,12 +354,12 @@ static void proceed_game(PLAYER * player_a,
                    current_turn_player->number_of_stone);
             printf("置ける場所: ");
             print_next_choices(current_turn_player);
-            printf("パス: (%d,%d)\n", get_board_x(PASS_BOARD_I),
-                   get_board_y(PASS_BOARD_I));
+            printf("パス: (%d,%d)\n", BOARD_X(PASS_BOARD_I) - 1,
+                   BOARD_Y(PASS_BOARD_I) - 1);
             printf
-                ("<< 座標を入力してください（例：3 4）\n");
+                ("<< 座標を入力してください（例：2 3）\n");
         }
-        is_passed = !get_location(current_turn_player, &x, &y);
+        is_passed = !determine_next_move(current_turn_player, &x, &y);
         if (is_passed == false) {
             current_turn_player->is_passed = false;
             put_stone(x, y, current_turn_player->stone);
@@ -332,18 +388,28 @@ static void set_player(PLAYER * player, BOARD_STATE stone)
     printf("   %d: AI（C言語）\n", C_AGENT);
     printf("   %d: AI（Python）\n", PYTHON_AGENT);
     printf(">> ");
-    scanf("%d", &player->player_type);
+    scanf("%d", (int *) &player->player_type);
     printf("<< %d が選択されました\n", player->player_type);
     printf("\n");
 
+    if (player->player_type != HUMAN) {
+        printf("<< エージェント名を設定してください\n");
+        printf(">> ");
+        scanf("%s", player->agent_name);
+        printf("<< %s が入力されました\n", player->agent_name);
+        printf("\n");
+    }
+
     printf("<< プレイヤー名を設定してください\n");
     printf(">> ");
-    scanf("%s", player->name);
-    printf("<< %s が入力されました\n", player->name);
+    scanf("%s", player->player_name);
+    printf("<< %s が入力されました\n", player->player_name);
     printf("\n");
+
     player->stone = stone;
-    player->number_of_stone = 2;
     player->next_choices[0] = -1;	/* 番兵で初期化 */
+    player->number_of_stone = 2;	/* ゲーム開始時点で2個確保済み */
+    player->is_passed = false;
 }
 
 int main(void)
@@ -361,7 +427,7 @@ int main(void)
     proceed_game(&player_a, &player_b, &winner);
 
     if (winner != NULL) {
-        printf("<< %sの勝利!\n", winner->name);
+        printf("<< %sの勝利!\n", winner->player_name);
     } else {
         printf("<< 引き分け\n");
     }
