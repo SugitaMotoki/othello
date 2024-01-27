@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define DEBUG_PRINT (true)
+#define DEBUG_PRINT (false)
 #define FIELD_SIZE (8)          /* オセロのルール上の盤の大きさ */
 #define BOARD_WIDTH ((FIELD_SIZE) + 2)	/* 両端の壁を含めた幅 */
 #define BOARD_HEIGHT ((FIELD_SIZE) + 2)	/* 両端の壁を含めた高さ */
@@ -30,6 +30,7 @@ typedef struct node {
     BoardState stone;
     Board board;
     BoardI next_choices[FIELD_SIZE * FIELD_SIZE];	/* 数字を格納するが、メモリ節約のためchar型 */
+    int point;
     char depth;
     char black_stone;
     char white_stone;
@@ -39,6 +40,8 @@ typedef struct node {
 /* boardで隣へ移動する際に添え字に足す数字（8方位） */
 static BoardI directions[8] = { 10, 11, 1, -9, -10, -11, -1, 9 };
 
+static Node root;
+static int max_point = 0;
 static BoardI result_i;
 
 static void count_stone(char *black, char *white, Board * board)
@@ -216,6 +219,25 @@ static void print_board(const Board board)
     }
 }
 
+static void calculate_point(Node * node)
+{
+    int point = 0;
+    char *own_stone;
+    char *enemy_stone;
+
+    if (root.stone == BLACK) {
+        own_stone = &node->black_stone;
+        enemy_stone = &node->white_stone;
+    } else {
+        own_stone = &node->white_stone;
+        enemy_stone = &node->black_stone;
+    }
+
+    point += *own_stone;
+    point += *own_stone - *enemy_stone;
+    node->point = point;
+}
+
 /* 子ノードを作成し、作成数を返す */
 static char create_child_node(Node * node, BoardI root_i)
 {
@@ -235,7 +257,21 @@ static char create_child_node(Node * node, BoardI root_i)
         search_next_choices(new_node);
         count_stone(&new_node->black_stone, &new_node->white_stone,
                     &new_node->board);
+        calculate_point(new_node);
         node->children[i] = new_node;
+
+        if (DEBUG_PRINT != false) {
+            printf("=========\n");
+            printf("depth: %d\n", new_node->depth);
+            printf("root_i: %d\n", root_i);
+            print_board(new_node->board);
+            printf("point: %d\n", new_node->point);
+        }
+
+        if (new_node->point > max_point) {
+            result_i = root_i;
+            max_point = new_node->point;
+        }
     }
 }
 
@@ -259,7 +295,7 @@ static void run_node(Node * node, BoardI root_i)
     }
 }
 
-static void init_root_node(Node * root, const char *argv_1)
+static void init_root_node(const char *argv_1)
 {
     char x, y;
     BoardI i = 0;
@@ -267,27 +303,26 @@ static void init_root_node(Node * root, const char *argv_1)
         for (y = 0; y < BOARD_WIDTH; y++) {
             if (x == 0 || x == BOARD_HEIGHT - 1 || y == 0
                 || y == BOARD_WIDTH - 1) {
-                root->board.array[GET_BOARD_I(x, y)] = WALL;
+                root.board.array[GET_BOARD_I(x, y)] = WALL;
             } else {
-                root->board.array[GET_BOARD_I(x, y)] = argv_1[i] - '0';
+                root.board.array[GET_BOARD_I(x, y)] = argv_1[i] - '0';
                 i++;
             }
         }
     }
 
-    root->stone = argv_1[65] - '0';
-    count_stone(&root->black_stone, &root->white_stone, &root->board);
-    root->depth = 0;
-    root->next_choices[0] = -1;
-    root->children = NULL;
+    root.stone = argv_1[65] - '0';
+    count_stone(&root.black_stone, &root.white_stone, &root.board);
+    root.depth = 0;
+    root.next_choices[0] = -1;
+    root.children = NULL;
 }
 
 int main(int argc, char *argv[])
 {
-    Node root;
     char i, count;
 
-    init_root_node(&root, argv[1]);
+    init_root_node(argv[1]);
     count = search_next_choices(&root);
 
     /* 打てる手が無ければパス */
