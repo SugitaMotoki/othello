@@ -277,6 +277,13 @@ int main(int argc, char *argv[])
 
     init_root_node(&root, argv[1]);
     search_next_choices(&root);
+
+    /* 打てる手が無ければパス */
+    if (root.next_choices[0] == -1) {
+        printf("{x:8,y:0}\n");
+        return 0;
+    }
+
     result_i = root.next_choices[0];
 
     run_node(&root);
