@@ -3,8 +3,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#define DEBUG_PRINT (true)
-#define GAME_ANNOUNCEMENT_PRINT (true)
+#define GAME_ANNOUNCEMENT_PRINT (false)
 #define MAX_LENGTH_OF_PLAYER_NAME (32)
 #define MAX_LENGTH_OF_AGENT_NAME (32)
 #define MAX_LENGTH_OF_COMMAND (256)
@@ -37,6 +36,7 @@ typedef struct player {
     char agent_name[MAX_LENGTH_OF_AGENT_NAME];
     int next_choices[SIZE * SIZE];
     int number_of_stone;
+    int number_of_wins;
     bool is_passed;
 } PLAYER;
 
@@ -274,7 +274,9 @@ static void get_location_from_stdio(int *x, int *y)
 
 static void get_location(PLAYER * player, int *x, int *y)
 {
-    printf(">> ");
+    if (GAME_ANNOUNCEMENT_PRINT != false) {
+        printf(">> ");
+    }
 
     switch (player->player_type) {
     case HUMAN:
@@ -337,7 +339,12 @@ static void proceed_game(PLAYER * player_a,
     bool is_passed;
 
     init_board();
-    printf("■ ゲーム開始\n");
+    player_a->is_passed = false;
+    player_b->is_passed = false;
+
+    if (GAME_ANNOUNCEMENT_PRINT != false) {
+        printf("■ ゲーム開始\n");
+    }
     while (is_finished(player_a, player_b) == false) {
         turn_count++;
         current_turn_player = (turn_count % 2 != 0) ? player_a : player_b;
@@ -417,20 +424,39 @@ int main(void)
     PLAYER player_a;            /* 先攻 */
     PLAYER player_b;            /* 後攻 */
     PLAYER *winner = NULL;
+    int game_count = 1;
+    int max_game_count;
 
     printf("■ 初期設定\n");
     printf("== 先攻 ==\n");
     set_player(&player_a, BLACK);
     printf("== 後攻 ==\n");
     set_player(&player_b, WHITE);
+    printf("== 詳細設定 ==\n");
+    printf("試行回数を入力してください\n");
+    scanf("%d", &max_game_count);
 
-    proceed_game(&player_a, &player_b, &winner);
+    while (game_count <= max_game_count) {
+        printf("== %d回目 ==\n", game_count);
 
-    if (winner != NULL) {
-        printf("<< %sの勝利!\n", winner->player_name);
-    } else {
-        printf("<< 引き分け\n");
+        proceed_game(&player_a, &player_b, &winner);
+
+        print_board();
+        if (winner != NULL) {
+            printf("<< %sの勝利!\n", winner->player_name);
+            winner->number_of_wins++;
+        } else {
+            printf("<< 引き分け\n");
+        }
+        printf("\n");
+        game_count++;
     }
+
+    printf("■ 最終結果\n");
+    printf("%s: %d回勝利\n", player_a.player_name,
+           player_a.number_of_wins);
+    printf("%s: %d回勝利\n", player_b.player_name,
+           player_b.number_of_wins);
 
     return 0;
 }
