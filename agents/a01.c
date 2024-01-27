@@ -210,28 +210,24 @@ static void print_board(const BOARD board)
     }
 }
 
-/* 作成した子ノードの数を返す */
+/* 子ノードを作成し、作成数を返す */
 static char create_child_node(NODE * node)
 {
     char number_of_next_choices = count_next_choices(node->next_choices);
     char i;
+    NODE *new_node;
 
     node->children = malloc(sizeof(NODE *) * number_of_next_choices);
 
     for (i = 0; i < number_of_next_choices; i++) {
-        node->children[i] = malloc(sizeof(NODE));	/* 領域確保 */
-        node->children[i]->stone = ANOTHER_STONE(node->stone);	/* 相手の石として登録 */
-        node->children[i]->depth = node->depth + 1;
-        node->children[i]->board = node->board;	/* 親の盤をコピー */
-        put_stone(node->next_choices[i], node->stone,
-                  &node->children[i]->board);
-        node->children[i]->next_choices[0] = -1;	/* 次の手の配列を初期化 */
-        search_next_choices(node->children[i]);
-        /*
-           printf("depth=%d\n", node->children[i]->depth);
-           print_board(node->children[i]->board);
-           print_next_choices(node->children[i]->next_choices);
-         */
+        new_node = malloc(sizeof(NODE));
+        new_node->stone = ANOTHER_STONE(node->stone);
+        new_node->depth = node->depth + 1;
+        new_node->board = node->board;
+        put_stone(node->next_choices[i], node->stone, &new_node->board);
+        new_node->next_choices[0] = -1;
+        search_next_choices(new_node);
+        node->children[i] = new_node;
     }
 }
 
@@ -282,10 +278,9 @@ int main(int argc, char *argv[])
 
     init_root_node(&root, argv[1]);
     search_next_choices(&root);
+    result_i = root.next_choices[0];
 
     run_node(&root);
-
-    result_i = root.next_choices[0];
 
     printf("{x:%d,y:%d}\n", GET_BOARD_X(result_i) - 1,
            GET_BOARD_Y(result_i) - 1);
