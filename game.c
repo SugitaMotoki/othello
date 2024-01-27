@@ -7,8 +7,8 @@
 #define GAME_ANNOUNCEMENT_PRINT (true)
 #define MAX_LENGTH_OF_PLAYER_NAME (32)
 #define MAX_LENGTH_OF_AGENT_NAME (32)
-#define MAX_LENGTH_OF_COMMAND (128)
-#define MAX_LENGTH_OF_JSON (16)
+#define MAX_LENGTH_OF_COMMAND (256)
+#define MAX_LENGTH_OF_JSON (32)
 #define SIZE (8)
 #define WIDTH ((SIZE) + 2)
 #define HEIGHT ((SIZE) + 2)
@@ -246,7 +246,7 @@ static void get_location_from_python_agent(int *x, int *y)
 static void get_location_from_c_agent(PLAYER * player, int *x, int *y)
 {
     FILE *fp;
-    char board_str[SIZE * SIZE] = "";
+    char board_str[SIZE * SIZE + 1] = "";
     char command[MAX_LENGTH_OF_COMMAND];
     char move_json[MAX_LENGTH_OF_JSON] = "";
 
