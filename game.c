@@ -3,7 +3,8 @@
 
 #define DEBUG_PRINT (true)
 #define GAME_ANNOUNCEMENT_PRINT (true)
-#define MAX_LENGTH_OF_PLAYER_NAME (30)
+#define MAX_LENGTH_OF_PLAYER_NAME (32)
+#define MAX_LENGTH_OF_AGENT_NAME (32)
 #define SIZE (8)
 #define WIDTH ((SIZE) + 2)
 #define HEIGHT ((SIZE) + 2)
@@ -28,7 +29,8 @@ typedef enum player_type {
 typedef struct player {
     BOARD_STATE stone;
     PLAYER_TYPE player_type;
-    char name[MAX_LENGTH_OF_PLAYER_NAME];
+    char player_name[MAX_LENGTH_OF_PLAYER_NAME];
+    char agent_name[MAX_LENGTH_OF_AGENT_NAME];
     int next_choices[SIZE * SIZE];
     int number_of_stone;
     bool is_passed;
@@ -277,7 +279,8 @@ static void proceed_game(PLAYER * player_a,
         if (GAME_ANNOUNCEMENT_PRINT != false) {
             printf("== ターン: %d ==\n", turn_count);
             print_board();
-            printf("プレイヤー: %s\n", current_turn_player->name);
+            printf("プレイヤー: %s\n",
+                   current_turn_player->player_name);
             printf("石: ");
             print_board_state_icon(current_turn_player->stone);
             printf("\n");
@@ -325,8 +328,8 @@ static void set_player(PLAYER * player, BOARD_STATE stone)
 
     printf("<< プレイヤー名を設定してください\n");
     printf(">> ");
-    scanf("%s", player->name);
-    printf("<< %s が入力されました\n", player->name);
+    scanf("%s", player->player_name);
+    printf("<< %s が入力されました\n", player->player_name);
     printf("\n");
     player->stone = stone;
     player->number_of_stone = 2;
@@ -348,7 +351,7 @@ int main(void)
     proceed_game(&player_a, &player_b, &winner);
 
     if (winner != NULL) {
-        printf("<< %sの勝利!\n", winner->name);
+        printf("<< %sの勝利!\n", winner->player_name);
     } else {
         printf("<< 引き分け\n");
     }
