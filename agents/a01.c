@@ -6,7 +6,7 @@
 #define FIELD_SIZE (8)          /* オセロのルール上の盤の大きさ */
 #define BOARD_WIDTH ((FIELD_SIZE) + 2)	/* 両端の壁を含めた幅 */
 #define BOARD_HEIGHT ((FIELD_SIZE) + 2)	/* 両端の壁を含めた高さ */
-#define MAX_DEPTH (5)
+#define MAX_DEPTH (4)
 #define GET_BOARD_I(X,Y) ((X) * (BOARD_HEIGHT) + (Y))
 #define GET_BOARD_X(I) ((I) / (BOARD_HEIGHT))
 #define GET_BOARD_Y(I) ((I) % (BOARD_HEIGHT))
@@ -67,12 +67,12 @@ static char count_next_choices(BoardI * next_choices)
     return i;
 }
 
-static void push_next_choices(const BoardI board_i, BoardI * next_choices)
+static char push_next_choices(const BoardI board_i, BoardI * next_choices)
 {
     char j = count_next_choices(next_choices);
     next_choices[j] = board_i;
     next_choices[j + 1] = -1;
-    return;
+    return j + 1;
 }
 
 static char count_reversibles_in_the_direction(const BoardI i,
@@ -114,17 +114,21 @@ static bool can_put_stone(const BoardI board_i,
     return false;
 }
 
-static void search_next_choices(Node * node)
+static char search_next_choices(Node * node)
 {
     char x, y;
+    char count;
     for (x = 1; x < BOARD_HEIGHT - 1; x++) {
         for (y = 1; y < BOARD_WIDTH - 1; y++) {
             if (can_put_stone
                 (GET_BOARD_I(x, y), node->stone, &node->board)) {
-                push_next_choices(GET_BOARD_I(x, y), node->next_choices);
+                count =
+                    push_next_choices(GET_BOARD_I(x, y),
+                                      node->next_choices);
             }
         }
     }
+    return count;
 }
 
 static void reverse_stone_in_the_direction(const BoardI i,
@@ -213,7 +217,7 @@ static void print_board(const Board board)
 }
 
 /* 子ノードを作成し、作成数を返す */
-static char create_child_node(Node * node)
+static char create_child_node(Node * node, BoardI root_i)
 {
     char number_of_next_choices = count_next_choices(node->next_choices);
     char i;
@@ -235,7 +239,7 @@ static char create_child_node(Node * node)
     }
 }
 
-static void run_node(Node * node)
+static void run_node(Node * node, BoardI root_i)
 {
     char i;
     char number_of_child;
@@ -244,10 +248,14 @@ static void run_node(Node * node)
         return;
     }
 
-    number_of_child = create_child_node(node);
+    number_of_child = create_child_node(node, root_i);
 
     for (i = 0; i < number_of_child; i++) {
-        run_node(node->children[i]);
+        if (root_i == -1) {
+            run_node(node->children[i], node->next_choices[i]);
+        } else {
+            run_node(node->children[i], root_i);
+        }
     }
 }
 
@@ -277,19 +285,20 @@ static void init_root_node(Node * root, const char *argv_1)
 int main(int argc, char *argv[])
 {
     Node root;
+    char i, count;
 
     init_root_node(&root, argv[1]);
-    search_next_choices(&root);
+    count = search_next_choices(&root);
 
     /* 打てる手が無ければパス */
-    if (root.next_choices[0] == -1) {
+    if (count == 0) {
         printf("{x:8,y:0}\n");
         return 0;
     }
 
     result_i = root.next_choices[0];
 
-    run_node(&root);
+    run_node(&root, -1);
 
     printf("{x:%d,y:%d}\n", GET_BOARD_X(result_i) - 1,
            GET_BOARD_Y(result_i) - 1);
