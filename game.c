@@ -321,14 +321,24 @@ static void set_player(PLAYER * player, BOARD_STATE stone)
     printf("<< %d が選択されました\n", player->player_type);
     printf("\n");
 
+    if (player->player_type != HUMAN) {
+        printf("<< エージェント名を設定してください\n");
+        printf(">> ");
+        scanf("%s", player->agent_name);
+        printf("<< %s が入力されました\n", player->agent_name);
+        printf("\n");
+    }
+
     printf("<< プレイヤー名を設定してください\n");
     printf(">> ");
     scanf("%s", player->player_name);
     printf("<< %s が入力されました\n", player->player_name);
     printf("\n");
+
     player->stone = stone;
-    player->number_of_stone = 2;
     player->next_choices[0] = -1;	/* 番兵で初期化 */
+    player->number_of_stone = 2;	/* ゲーム開始時点で2個確保済み */
+    player->is_passed = false;
 }
 
 int main(void)
