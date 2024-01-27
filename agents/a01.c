@@ -6,7 +6,7 @@
 #define FIELD_SIZE (8)          /* オセロのルール上の盤の大きさ */
 #define BOARD_WIDTH ((FIELD_SIZE) + 2)	/* 両端の壁を含めた幅 */
 #define BOARD_HEIGHT ((FIELD_SIZE) + 2)	/* 両端の壁を含めた高さ */
-#define MAX_DEPTH (4)
+#define MAX_DEPTH (5)
 #define GET_BOARD_I(X,Y) ((X) * (BOARD_HEIGHT) + (Y))
 #define GET_BOARD_X(I) ((I) / (BOARD_HEIGHT))
 #define GET_BOARD_Y(I) ((I) % (BOARD_HEIGHT))
