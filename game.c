@@ -36,11 +36,6 @@ typedef struct player {
     bool is_passed;
 } PLAYER;
 
-typedef struct game_result {
-    PLAYER winner;
-    int turn_count;
-} GAME_RESTLT;
-
 /* 盤 */
 /* 上下一行ずつ・左右一列ずつを壁とする */
 static BOARD_STATE board[WIDTH * HEIGHT];
