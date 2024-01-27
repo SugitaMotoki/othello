@@ -31,8 +31,8 @@ typedef struct node {
     Board board;
     BoardI next_choices[FIELD_SIZE * FIELD_SIZE];	/* 数字を格納するが、メモリ節約のためchar型 */
     char depth;
-    char own_stone;
-    char enemys_stone;
+    char black_stone;
+    char white_stone;
     struct node **children;
 } Node;
 
@@ -41,18 +41,21 @@ static BoardI directions[8] = { 10, 11, 1, -9, -10, -11, -1, 9 };
 
 static BoardI result_i;
 
-static char count_stone(const BoardState stone, const Board board)
+static void count_stone(char *black, char *white, Board * board)
 {
     char x, y;
-    char count = 0;
+    char count_black = 0, count_white = 0;
     for (x = 1; x < BOARD_HEIGHT - 1; x++) {
         for (y = 1; y < BOARD_WIDTH - 1; y++) {
-            if (board.array[GET_BOARD_I(x, y)] == stone) {
-                count++;
+            if (board->array[GET_BOARD_I(x, y)] == BLACK) {
+                count_black++;
+            } else if (board->array[GET_BOARD_I(x, y)] == WHITE) {
+                count_white++;
             }
         }
     }
-    return count;
+    *black = count_black;
+    *white = count_white;
 }
 
 static char count_next_choices(BoardI * next_choices)
@@ -226,6 +229,8 @@ static char create_child_node(Node * node)
         put_stone(node->next_choices[i], node->stone, &new_node->board);
         new_node->next_choices[0] = -1;
         search_next_choices(new_node);
+        count_stone(&new_node->black_stone, &new_node->white_stone,
+                    &new_node->board);
         node->children[i] = new_node;
     }
 }
@@ -263,9 +268,7 @@ static void init_root_node(Node * root, const char *argv_1)
     }
 
     root->stone = argv_1[65] - '0';
-    root->own_stone = count_stone(root->stone, root->board);
-    root->enemys_stone =
-        count_stone(ANOTHER_STONE(root->stone), root->board);
+    count_stone(&root->black_stone, &root->white_stone, &root->board);
     root->depth = 0;
     root->next_choices[0] = -1;
     root->children = NULL;
