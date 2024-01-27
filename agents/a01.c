@@ -120,7 +120,7 @@ static bool can_put_stone(const BoardI board_i,
 static char search_next_choices(Node * node)
 {
     char x, y;
-    char count;
+    char count = 0;
     for (x = 1; x < BOARD_HEIGHT - 1; x++) {
         for (y = 1; y < BOARD_WIDTH - 1; y++) {
             if (can_put_stone
@@ -268,7 +268,7 @@ static char create_child_node(Node * node, BoardI root_i)
             printf("point: %d\n", new_node->point);
         }
 
-        if (new_node->point > max_point) {
+        if (new_node->point > max_point && root_i != -1) {
             result_i = root_i;
             max_point = new_node->point;
         }
