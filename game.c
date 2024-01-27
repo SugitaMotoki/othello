@@ -87,7 +87,7 @@ static int print_next_choices(PLAYER * player)
     int i = player->next_choices[j];
 
     while (i != -1) {
-        printf("(%d,%d) ", BOARD_X(i), BOARD_Y(i));
+        printf("(%d,%d) ", BOARD_X(i) - 1, BOARD_Y(i) - 1);
         j++;
         i = player->next_choices[j];
     }
@@ -211,12 +211,12 @@ static void print_board(void)
 
     printf("  y\nx ");
     for (y = 1; y < WIDTH - 1; y++) {
-        printf(" %d", y);
+        printf(" %d", y - 1);
     }
     printf("\n");
 
     for (x = 1; x < HEIGHT - 1; x++) {
-        printf(" %d|", x);
+        printf(" %d|", x - 1);
         for (y = 1; y < WIDTH - 1; y++) {
             print_board_state_icon(board[BOARD_I(x, y)]);
             printf("|");
@@ -231,6 +231,8 @@ static bool get_location(PLAYER * player, int *x, int *y)
     while (true) {
         printf(">> ");
         scanf("%d%d", x, y);
+        (*x)++;
+        (*y)++;
         if (BOARD_I(*x, *y) == PASS_BOARD_I) {
             if (player->next_choices[0] == -1) {
                 return false;
@@ -241,8 +243,8 @@ static bool get_location(PLAYER * player, int *x, int *y)
         } else if (can_put_stone(*x, *y, player->stone) == false) {
             printf("<< ");
             print_board_state_icon(player->stone);
-            printf("を(%d,%d)に置くことはできません\n", *x,
-                   *y);
+            printf("を(%d,%d)に置くことはできません\n", *x - 1,
+                   *y - 1);
         } else {
             break;
         }
@@ -283,10 +285,10 @@ static void proceed_game(PLAYER * player_a,
                    current_turn_player->number_of_stone);
             printf("置ける場所: ");
             print_next_choices(current_turn_player);
-            printf("パス: (%d,%d)\n", BOARD_X(PASS_BOARD_I),
-                   BOARD_Y(PASS_BOARD_I));
+            printf("パス: (%d,%d)\n", BOARD_X(PASS_BOARD_I) - 1,
+                   BOARD_Y(PASS_BOARD_I) - 1);
             printf
-                ("<< 座標を入力してください（例：3 4）\n");
+                ("<< 座標を入力してください（例：2 3）\n");
         }
         is_passed = !get_location(current_turn_player, &x, &y);
         if (is_passed == false) {
