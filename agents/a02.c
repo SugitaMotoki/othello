@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define DEBUG_PRINT (false)
+#define DEBUG_PRINT (true)
 #define FIELD_SIZE (8)          /* オセロのルール上の盤の大きさ */
 #define BOARD_WIDTH ((FIELD_SIZE) + 2)	/* 両端の壁を含めた幅 */
 #define BOARD_HEIGHT ((FIELD_SIZE) + 2)	/* 両端の壁を含めた高さ */
-#define MAX_DEPTH (5)
+#define MAX_DEPTH (2)
 #define GET_BOARD_I(X,Y) ((X) * (BOARD_HEIGHT) + (Y))
 #define GET_BOARD_X(I) ((I) / (BOARD_HEIGHT))
 #define GET_BOARD_Y(I) ((I) % (BOARD_HEIGHT))
@@ -29,7 +29,7 @@ typedef char BoardI;
 typedef struct node {
     BoardState stone;
     Board board;
-    BoardI next_choices[FIELD_SIZE * FIELD_SIZE];	/* 数字を格納するが、メモリ節約のためchar型 */
+    BoardI next_choices[FIELD_SIZE * FIELD_SIZE];
     int point;
     char depth;
     char black_stone;
@@ -257,25 +257,18 @@ static char create_child_node(Node * node, BoardI root_i)
         search_next_choices(new_node);
         count_stone(&new_node->black_stone, &new_node->white_stone,
                     &new_node->board);
-        calculate_point(new_node);
-        node->children[i] = new_node;
 
         if (DEBUG_PRINT != false) {
-            printf("=========\n");
             printf("depth: %d\n", new_node->depth);
             printf("root_i: %d\n", root_i);
             print_board(new_node->board);
-            printf("point: %d\n", new_node->point);
         }
 
-        if (new_node->point > max_point && root_i != -1) {
-            result_i = root_i;
-            max_point = new_node->point;
-        }
+        node->children[i] = new_node;
     }
 }
 
-static void run_node(Node * node, BoardI root_i)
+static void create_node(Node * node, BoardI root_i)
 {
     char i;
     char number_of_child;
@@ -288,9 +281,9 @@ static void run_node(Node * node, BoardI root_i)
 
     for (i = 0; i < number_of_child; i++) {
         if (root_i == -1) {
-            run_node(node->children[i], node->next_choices[i]);
+            create_node(node->children[i], node->next_choices[i]);
         } else {
-            run_node(node->children[i], root_i);
+            create_node(node->children[i], root_i);
         }
     }
 }
@@ -333,7 +326,7 @@ int main(int argc, char *argv[])
 
     result_i = root.next_choices[0];
 
-    run_node(&root, -1);
+    create_node(&root, -1);
 
     printf("{x:%d,y:%d}\n", GET_BOARD_X(result_i) - 1,
            GET_BOARD_Y(result_i) - 1);
