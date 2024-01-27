@@ -317,7 +317,7 @@ static void set_player(PLAYER * player, BOARD_STATE stone)
     printf("   %d: AI（C言語）\n", C_AGENT);
     printf("   %d: AI（Python）\n", PYTHON_AGENT);
     printf(">> ");
-    scanf("%d", &player->player_type);
+    scanf("%d", (int *) &player->player_type);
     printf("<< %d が選択されました\n", player->player_type);
     printf("\n");
 
