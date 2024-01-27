@@ -1,6 +1,6 @@
 a.out
 *.c~
-memo.txt
+memo*.txt
 
 # agents
 random
