@@ -16,32 +16,32 @@ typedef enum board_state {
     WHITE,                      /* 1: 白石 */
     BLACK,                      /* 2: 黒石 */
     WALL                        /* 3: 壁 */
-} BOARD_STATE;
+} BoardState;
 
 #define ANOTHER_STONE(S) ((BLACK) + (WHITE) - (S))
 
 typedef struct board {
-    BOARD_STATE array[BOARD_WIDTH * BOARD_HEIGHT];
-} BOARD;
+    BoardState array[BOARD_WIDTH * BOARD_HEIGHT];
+} Board;
 
-typedef char Board_I;
+typedef char BoardI;
 
 typedef struct node {
-    BOARD_STATE stone;
-    BOARD board;
-    Board_I next_choices[FIELD_SIZE * FIELD_SIZE];	/* 数字を格納するが、メモリ節約のためchar型 */
+    BoardState stone;
+    Board board;
+    BoardI next_choices[FIELD_SIZE * FIELD_SIZE];	/* 数字を格納するが、メモリ節約のためchar型 */
     char depth;
     char own_stone;
     char enemys_stone;
     struct node **children;
-} NODE;
+} Node;
 
 /* boardで隣へ移動する際に添え字に足す数字（8方位） */
-static Board_I directions[8] = { 10, 11, 1, -9, -10, -11, -1, 9 };
+static BoardI directions[8] = { 10, 11, 1, -9, -10, -11, -1, 9 };
 
-static Board_I result_i;
+static BoardI result_i;
 
-static char count_stone(const BOARD_STATE stone, const BOARD board)
+static char count_stone(const BoardState stone, const Board board)
 {
     char x, y;
     char count = 0;
@@ -55,7 +55,7 @@ static char count_stone(const BOARD_STATE stone, const BOARD board)
     return count;
 }
 
-static char count_next_choices(Board_I * next_choices)
+static char count_next_choices(BoardI * next_choices)
 {
     char i = 0;
     while (next_choices[i] != -1) {
@@ -64,8 +64,7 @@ static char count_next_choices(Board_I * next_choices)
     return i;
 }
 
-static void push_next_choices(const Board_I board_i,
-                              Board_I * next_choices)
+static void push_next_choices(const BoardI board_i, BoardI * next_choices)
 {
     char j = count_next_choices(next_choices);
     next_choices[j] = board_i;
@@ -73,13 +72,13 @@ static void push_next_choices(const Board_I board_i,
     return;
 }
 
-static char count_reversibles_in_the_direction(const Board_I i,
-                                               const BOARD_STATE stone,
-                                               const BOARD * board,
+static char count_reversibles_in_the_direction(const BoardI i,
+                                               const BoardState stone,
+                                               const Board * board,
                                                const char dir_i)
 {
-    BOARD_STATE current;
-    Board_I j = i;
+    BoardState current;
+    BoardI j = i;
     char count = 0;
 
     while (1) {
@@ -95,8 +94,8 @@ static char count_reversibles_in_the_direction(const Board_I i,
     }
 }
 
-static bool can_put_stone(const Board_I board_i,
-                          const BOARD_STATE stone, const BOARD * board)
+static bool can_put_stone(const BoardI board_i,
+                          const BoardState stone, const Board * board)
 {
     char dir_i;
     if (board->array[board_i] != EMPTY) {
@@ -112,7 +111,7 @@ static bool can_put_stone(const Board_I board_i,
     return false;
 }
 
-static void search_next_choices(NODE * node)
+static void search_next_choices(Node * node)
 {
     char x, y;
     for (x = 1; x < BOARD_HEIGHT - 1; x++) {
@@ -125,11 +124,11 @@ static void search_next_choices(NODE * node)
     }
 }
 
-static void reverse_stone_in_the_direction(const Board_I i,
-                                           BOARD_STATE stone,
-                                           BOARD * board, const char dir_i)
+static void reverse_stone_in_the_direction(const BoardI i,
+                                           BoardState stone,
+                                           Board * board, const char dir_i)
 {
-    Board_I j = i;
+    BoardI j = i;
     j += directions[dir_i];
     while (board->array[j] != stone) {
         board->array[j] = stone;
@@ -137,8 +136,8 @@ static void reverse_stone_in_the_direction(const Board_I i,
     }
 }
 
-static void reverse_stone(const Board_I board_i, BOARD_STATE stone,
-                          BOARD * board)
+static void reverse_stone(const BoardI board_i, BoardState stone,
+                          Board * board)
 {
     char dir_i;
     for (dir_i = 0; dir_i < 8; dir_i++) {
@@ -150,16 +149,16 @@ static void reverse_stone(const Board_I board_i, BOARD_STATE stone,
     }
 }
 
-static void put_stone(const Board_I i, BOARD_STATE stone, BOARD * board)
+static void put_stone(const BoardI i, BoardState stone, Board * board)
 {
     board->array[i] = stone;
     reverse_stone(i, stone, board);
 }
 
-static void print_next_choices(const Board_I * next_choices)
+static void print_next_choices(const BoardI * next_choices)
 {
     char j = 0;
-    Board_I i = next_choices[j];
+    BoardI i = next_choices[j];
 
     while (i != -1) {
         printf("(%d,%d) ", GET_BOARD_X(i) - 1, GET_BOARD_Y(i) - 1);
@@ -169,7 +168,7 @@ static void print_next_choices(const Board_I * next_choices)
     printf("\n");
 }
 
-static void print_board_state_icon(const BOARD_STATE state)
+static void print_board_state_icon(const BoardState state)
 {
     switch (state) {
     case BLACK:
@@ -190,7 +189,7 @@ static void print_board_state_icon(const BOARD_STATE state)
     }
 }
 
-static void print_board(const BOARD board)
+static void print_board(const Board board)
 {
     char x, y;
 
@@ -211,16 +210,16 @@ static void print_board(const BOARD board)
 }
 
 /* 子ノードを作成し、作成数を返す */
-static char create_child_node(NODE * node)
+static char create_child_node(Node * node)
 {
     char number_of_next_choices = count_next_choices(node->next_choices);
     char i;
-    NODE *new_node;
+    Node *new_node;
 
-    node->children = malloc(sizeof(NODE *) * number_of_next_choices);
+    node->children = malloc(sizeof(Node *) * number_of_next_choices);
 
     for (i = 0; i < number_of_next_choices; i++) {
-        new_node = malloc(sizeof(NODE));
+        new_node = malloc(sizeof(Node));
         new_node->stone = ANOTHER_STONE(node->stone);
         new_node->depth = node->depth + 1;
         new_node->board = node->board;
@@ -231,7 +230,7 @@ static char create_child_node(NODE * node)
     }
 }
 
-static void run_node(NODE * node)
+static void run_node(Node * node)
 {
     char i;
     char number_of_child;
@@ -247,10 +246,10 @@ static void run_node(NODE * node)
     }
 }
 
-static void init_root_node(NODE * root, const char *argv_1)
+static void init_root_node(Node * root, const char *argv_1)
 {
     char x, y;
-    Board_I i = 0;
+    BoardI i = 0;
     for (x = 0; x < BOARD_HEIGHT; x++) {
         for (y = 0; y < BOARD_WIDTH; y++) {
             if (x == 0 || x == BOARD_HEIGHT - 1 || y == 0
@@ -274,7 +273,7 @@ static void init_root_node(NODE * root, const char *argv_1)
 
 int main(int argc, char *argv[])
 {
-    NODE root;
+    Node root;
 
     init_root_node(&root, argv[1]);
     search_next_choices(&root);
