@@ -13,9 +13,9 @@
 #define PASS_BOARD_I (91)
 
 typedef enum board_state {
-    BLACK,                      /* 0: 黒石 */
+    EMPTY,                      /* 0: 空白 */
     WHITE,                      /* 1: 白石 */
-    EMPTY,                      /* 2: 空白 */
+    BLACK,                      /* 2: 黒石 */
     WALL                        /* 3: 壁 */
 } BOARD_STATE;
 
