@@ -371,7 +371,8 @@ static void proceed_game(PLAYER * player_a,
             current_turn_player->is_passed = false;
             put_stone(x, y, current_turn_player->stone);
             if (GAME_ANNOUNCEMENT_PRINT != false) {
-                printf("%sが(%d,%d)に設置\n", current_turn_player->player_name, x - 1, y - 1);
+                printf("%sが(%d,%d)に設置\n",
+                       current_turn_player->player_name, x - 1, y - 1);
                 print_board();
             }
         } else {
