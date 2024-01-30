@@ -1,5 +1,8 @@
-a.out
-
-game
-
+# indentによるバックアップファイル
 *.c~
+
+# 実行ファイル
+*.out
+
+# メモ
+memo*.txt
