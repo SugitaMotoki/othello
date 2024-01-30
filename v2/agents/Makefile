@@ -1,13 +1,12 @@
-EXES = random.out a01.out
+PROGRAMS = random.out a01.out
 
 .PHONY: all
-all: $(EXES)
+all: $(PROGRAMS)
 
-.SUFFIXES: .c .out
-.c.out:
+%.out: %.c
 				gcc -o $@ $<
 
 .PHONY: clean
 clean:
-				rm -f *.out *.c~
+				rm -f *.o *.out *.*~
 

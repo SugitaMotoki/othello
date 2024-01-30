@@ -1,13 +1,19 @@
-EXES = game.out
+NAME = game
+PROGRAM = $(NAME).out
+OBJS = $(NAME).o modules/board.o
 
 .PHONY: all
-all: $(EXES)
+all: $(PROGRAM)
 
-.SUFFIXES: .c .out
-.c.out:
-				gcc -o $@ $<
+$(PROGRAM): $(OBJS)
+				gcc -o $@ $^
+
+indent: $(NAME).c
+				indent -kr -ts255 $^
+				make -C ./modules indent
 
 .PHONY: clean
 clean:
-				rm -f *.out *.c~
+				rm -f *.o *.out *.*~
 				make -C ./agents clean
+				make -C ./modules clean
