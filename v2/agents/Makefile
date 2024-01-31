@@ -1,10 +1,11 @@
-PROGRAMS = random.out a01.out
-
 .PHONY: all
-all: $(PROGRAMS)
+all: random.out a01.out
 
-%.out: %.c
-				gcc -o $@ $<
+random.out: random.o ../modules/board.o
+				gcc -o $@ $^
+
+a01.out: a01.o
+				gcc -o $@ $^
 
 .PHONY: clean
 clean:
