@@ -4,26 +4,18 @@
 
 BoardI directions[8] = { 10, 11, 1, -9, -10, -11, -1, 9 };
 
-void count_stone(char *black, char *white, const Board * board)
+char count_stone(const BoardState stone, const Board * board)
 {
     char x, y;
-    *black = 0;
-    *white = 0;
+    char count = 0;
     for (x = 1; x < BOARD_HEIGHT - 1; x++) {
         for (y = 1; y < BOARD_WIDTH - 1; y++) {
-            switch (board->array[GET_BOARD_I(x, y)]) {
-            case BLACK:
-                (*black)++;
-                break;
-            case WHITE:
-                (*white)++;
-                break;
-            default:
-                continue;
-                break;
+            if (board->array[GET_BOARD_I(x, y)] == stone) {
+                count++;
             }
         }
     }
+    return count;
 }
 
 void init_board(Board * board)
@@ -149,6 +141,7 @@ bool put_stone(const BoardI board_i, const BoardState stone, Board * board)
     }
     board->array[board_i] = stone;
     reverse_stone(board_i, stone, board);
+    return true;
 }
 
 bool can_put_stone(const BoardI board_i, const BoardState stone,

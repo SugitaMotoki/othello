@@ -27,7 +27,7 @@ typedef char BoardI;
 
 extern BoardI directions[8];
 
-extern void count_stone(char *black, char *white, const Board * board);
+extern char count_stone(const BoardState stone, const Board * board);
 extern void init_board(Board * board);
 extern void print_board_state_icon(const BoardState state);
 extern void print_board(const Board * board);
