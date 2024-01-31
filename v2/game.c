@@ -1,13 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "modules/board.h"
 
-#define DEBUG_PRINT (true)
+#define DEBUG_PRINT (false)
 
 typedef struct player {
     BoardState stone;
     char player_name[50];
     char agent_name[50];
-    char number_of_wins;
+    int number_of_wins;
     bool is_passed;
 } Player;
 
@@ -18,6 +19,7 @@ Player player_a = {
     0,
     false,
 };
+
 Player player_b = {
     WHITE,
     "random02",
@@ -26,8 +28,40 @@ Player player_b = {
     false,
 };
 
-static void get_position(int * x, int * y, Player * player) {
-    scanf("%d%d", x, y);
+static void get_board_str(char *board_str, const Board * board)
+{
+    int x, y, i = 0;
+    for (x = 1; x < BOARD_HEIGHT - 1; x++) {
+        for (y = 1; y < BOARD_WIDTH - 1; y++) {
+            board_str[i] = board->array[GET_BOARD_I(x, y)] + '0';
+            i++;
+        }
+    }
+}
+
+static void get_position(int *x, int *y, Player * player,
+                         const Board * board)
+{
+    FILE *fp;
+    char board_str[66] = "";
+    char command[256];
+    char move_json[16] = "";
+
+    get_board_str(board_str, board);
+    snprintf(command, 256, "./agents/%s.out %s,%d",
+             player->agent_name, board_str, player->stone);
+
+    fp = popen(command, "r");
+    if (fp == NULL) {
+        perror("popen failed");
+        exit(-1);
+    }
+    fgets(move_json, 16, fp);
+    pclose(fp);
+
+    /* {"x":?,"y":?} */
+    *x = move_json[5] - '0';
+    *y = move_json[11] - '0';
 }
 
 static bool is_finished(const Board * board)
@@ -40,7 +74,7 @@ static bool is_finished(const Board * board)
     return false;
 }
 
-static Player * proceed_game()
+static Player *proceed_game()
 {
     Board board;
     Player *attacker;
@@ -61,14 +95,16 @@ static Player * proceed_game()
             printf("%s\n", attacker->player_name);
         }
 
-        get_position(&x, &y, attacker);
-        put_result = put_stone(GET_BOARD_I(x+1, y+1), attacker->stone, &board);
+        get_position(&x, &y, attacker, &board);
+        put_result =
+            put_stone(GET_BOARD_I(x + 1, y + 1), attacker->stone, &board);
         if (x == 8 && y == 0) {
             turn_count++;
             attacker->is_passed = true;
             continue;
         } else if (put_result == false) {
-            printf("%s: (%d,%d)には置けません\n", attacker->player_name, x, y);
+            printf("%s: (%d,%d)には置けません\n",
+                   attacker->player_name, x, y);
             continue;
         }
         attacker->is_passed = false;
@@ -99,7 +135,7 @@ int main(void)
         printf("== %d ==\n", game_count);
         winner = proceed_game();
         if (winner != NULL) {
-            printf("%sの勝ち\n", winner->agent_name);
+            printf("%sの勝ち\n", winner->player_name);
             winner->number_of_wins++;
         } else {
             printf("引き分け\n");
