@@ -1,24 +1,12 @@
-.PHONY: all
-all: indent game subdirmake
-
-.PHONY: allclean
-allclean: clean subdirclean
-
-game: game.c
-				gcc -o game game.c
-
-.PHONY: indent
-indent:
-				indent -kr -ts255 game.c
-
 .PHONY: clean
 clean:
-				rm -f *.c~ game
+				make clean_v1
+				make clean_v2
 
-.PHONY: subdirmake
-subdirmake:
-				make -C agents/
+.PHONY: clean_v1
+clean_v1:
+				make -C v1/ allclean
 
-.PHONY: subdirclean
-subdirclean:
-				make -C agents/ clean
+.PHONY: clean_v2
+clean_v2:
+				make -C v2/ clean

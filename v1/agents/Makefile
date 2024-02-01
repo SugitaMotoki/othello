@@ -16,4 +16,4 @@ a02: a02.c
 
 .PHONY: clean
 clean:
-				rm *.c~ $(SOURCES)
+				rm -f *.c~ $(SOURCES)

@@ -321,22 +321,27 @@ static void init_root_node(const char *argv_1)
 int main(int argc, char *argv[])
 {
     char i, count;
+    char input[66];
 
-    init_root_node(argv[1]);
-    count = search_next_choices(&root);
+    // printf("%d\n", sizeof(Node));
+    while (true) {
+        scanf("%s", input);
+        init_root_node(input);
+        count = search_next_choices(&root);
 
-    /* 打てる手が無ければパス */
-    if (count == 0) {
-        printf("{x:8,y:0}\n");
-        return 0;
+        /* 打てる手が無ければパス */
+        if (count == 0) {
+            printf("{\"x\":8,\"y\":0}");
+        } else {
+            result_i = root.next_choices[0];
+
+            run_node(&root, -1);
+
+            printf("{\"x\":%d, \"y\":%d}", GET_BOARD_X(result_i) - 1,
+                   GET_BOARD_Y(result_i) - 1);
+        }
+        fflush(stdout);
     }
-
-    result_i = root.next_choices[0];
-
-    run_node(&root, -1);
-
-    printf("{x:%d,y:%d}\n", GET_BOARD_X(result_i) - 1,
-           GET_BOARD_Y(result_i) - 1);
 
     return 0;
 }
