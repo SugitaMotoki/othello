@@ -67,14 +67,14 @@ void print_board(const Board * board)
 {
     char x, y;
 
-    printf("  y\nx ");
+    printf(" ");
     for (y = 1; y < BOARD_WIDTH - 1; y++) {
         printf(" %d", y - 1);
     }
     printf("\n");
 
     for (x = 1; x < BOARD_HEIGHT - 1; x++) {
-        printf(" %d|", x - 1);
+        printf("%d|", x - 1);
         for (y = 1; y < BOARD_WIDTH - 1; y++) {
             print_board_state_icon(board->array[GET_BOARD_I(x, y)]);
             printf("|");
