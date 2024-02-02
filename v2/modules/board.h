@@ -66,10 +66,19 @@ extern void reverse_stone(const BoardI board_i, const BoardState stone,
 
 /* 石を設置することができるかを判定する関数 */
 extern bool can_put_stone(const BoardI board_i, const BoardState stone,
-                          Board * board);
+                          const Board * board);
 
-/* 石を設置する関数（必要に応じてひっくり返す） */
-extern bool put_stone(const BoardI board_i, const BoardState stone,
+/* 石を設置する関数 */
+extern void put_stone(const BoardI board_i, const BoardState stone,
                       Board * board);
+
+/* 合法手の数を数える関数 */
+extern char count_next_choices(const BoardI *next_choices);
+
+/* 合法手一覧の配列に値を加える関数 */
+extern char push_next_choices(BoardI *next_choices, const BoardI board_i);
+
+/* 合法手一覧を返す関数 */
+extern char get_next_choices(BoardI *next_choices, const BoardState stone, const Board * board);
 
 #endif
