@@ -14,7 +14,7 @@ typedef struct player {
 
 Player player_a = {
     BLACK,
-    "random01",
+    "Random",
     "random",
     0,
     false,
@@ -22,8 +22,8 @@ Player player_a = {
 
 Player player_b = {
     WHITE,
-    "random02",
-    "random",
+    "A02",
+    "a02",
     0,
     false,
 };

@@ -168,8 +168,8 @@ char push_next_choices(BoardI *next_choices, const BoardI board_i)
 char get_next_choices(BoardI *next_choices, const BoardState stone, const Board * board)
 {
     char x, y, count = 0;
-    for (x = 1; x <= 8; x++) {
-        for (y = 1; y <= 8; y++) {
+    for (x = 1; x < BOARD_HEIGHT - 1; x++) {
+        for (y = 1; y < BOARD_WIDTH - 1; y++) {
             if (can_put_stone(GET_BOARD_I(x, y), stone, board) != false) {
                 push_next_choices(next_choices, GET_BOARD_I(x, y));
             }
