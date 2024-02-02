@@ -131,22 +131,20 @@ void reverse_stone(const BoardI board_i, const BoardState stone,
     }
 }
 
-bool put_stone(const BoardI board_i, const BoardState stone, Board * board)
-{
-    if (board->array[board_i] != EMPTY) {
-        return false;
-    }
-    if (can_reverse(board_i, stone, board) == false) {
-        return false;
-    }
-    board->array[board_i] = stone;
-    reverse_stone(board_i, stone, board);
-    return true;
-}
-
 bool can_put_stone(const BoardI board_i, const BoardState stone,
                    Board * board)
 {
-    Board tmp_board = *board;
-    return put_stone(board_i, stone, &tmp_board);
+    if (board->array[board_i] != EMPTY) {
+        return false;
+    } else if (can_reverse(board_i, stone, board) == false) {
+        return false;
+    }
+    return true;
+}
+
+bool put_stone(const BoardI board_i, const BoardState stone, Board * board)
+{
+    board->array[board_i] = stone;
+    reverse_stone(board_i, stone, board);
+    return true;
 }
