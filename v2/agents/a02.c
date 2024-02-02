@@ -109,7 +109,7 @@ static int negamax(Node * node, const bool is_pass)
             node->children[i] = create_child_node(node, next_choices[i]);
             child_point = -negamax(node->children[i], false);
             if (i == 0 || child_point > best_point) {
-                best_point = node->children[i]->point;
+                best_point = child_point;
                 node->best = node->children[i];
             }
         }
