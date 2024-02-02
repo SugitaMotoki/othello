@@ -5,7 +5,8 @@
 
 #include "../modules/board.h"
 
-#define MAX_DEPTH (3)
+#define DEBUG_PRINT (false)
+#define MAX_DEPTH (4)
 #define ANOTHER_STONE(S) ((BLACK) + (WHITE) - (S))
 
 struct timeval tv;
@@ -62,6 +63,11 @@ static int evaluate_terminal(Node * node)
     } else if (my_stone + enemy_stone == FIELD_SIZE * FIELD_SIZE) {
         point += (my_stone - enemy_stone) * 1000;
     }
+
+    if (DEBUG_PRINT != false) {
+        printf("depth: %d, board_i: %d, point: %d\n", node->depth,
+               node->board_i, point);
+    }
     return point;
 }
 
@@ -83,6 +89,13 @@ static int negamax(Node * node, const bool is_pass)
     char i, number_of_child;
     BoardI next_choices[FIELD_SIZE * FIELD_SIZE] = { -1 };
     int child_point, best_point;
+
+    if (DEBUG_PRINT != false) {
+        printf("---------------------\n");
+        printf("created depth: %d, board_i: %d\n", node->depth,
+               node->board_i);
+        print_board(&node->board);
+    }
 
     if (node->depth == MAX_DEPTH) {
         return evaluate_terminal(node);
@@ -113,6 +126,11 @@ static int negamax(Node * node, const bool is_pass)
                 node->best = node->children[i];
             }
         }
+    }
+
+    if (DEBUG_PRINT != false) {
+        printf("depth: %d, board_i: %d, point: %d\n", node->depth,
+               node->board_i, best_point);
     }
 
     return best_point;
