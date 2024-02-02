@@ -39,7 +39,7 @@ static void get_board_str(char *board_str, const Board * board)
     }
 }
 
-static void get_position(int *x, int *y, Player * player,
+static void get_position(char *x, char *y, Player * player,
                          const Board * board)
 {
     FILE *fp;
@@ -79,8 +79,8 @@ static Player *proceed_game()
     Board board;
     Player *attacker;
     int turn_count = 0;
-    int x, y;
-    int a_stone, b_stone;
+    char x, y, i;
+    char a_stone, b_stone;
     bool put_result;
 
     init_board(&board);
@@ -96,17 +96,17 @@ static Player *proceed_game()
         }
 
         get_position(&x, &y, attacker, &board);
-        put_result =
-            put_stone(GET_BOARD_I(x + 1, y + 1), attacker->stone, &board);
+        i = GET_BOARD_I(x + 1, y + 1);
         if (x == 8 && y == 0) {
             turn_count++;
             attacker->is_passed = true;
             continue;
-        } else if (put_result == false) {
+        } else if (can_put_stone(i, attacker->stone, &board) == false) {
             printf("%s: (%d,%d)には置けません\n",
                    attacker->player_name, x, y);
             continue;
         }
+        put_stone(i, attacker->stone, &board);
         attacker->is_passed = false;
         turn_count++;
     }

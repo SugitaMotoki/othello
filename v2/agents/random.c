@@ -7,23 +7,6 @@
 
 struct timeval tv;
 
-static char count_next_choices(BoardI * next_choices)
-{
-    char i = 0;
-    while (next_choices[i] != -1) {
-        i++;
-    }
-    return i;
-}
-
-static char push_next_choices(const BoardI board_i, BoardI * next_choices)
-{
-    char j = count_next_choices(next_choices);
-    next_choices[j] = board_i;
-    next_choices[j + 1] = -1;
-    return j + 1;
-}
-
 static void create_board(char *input, Board * board)
 {
     char x, y, i;
@@ -55,14 +38,8 @@ int main(int argc, char *argv[])
     // scanf("%s", input);
     create_board(argv[1], &board);
     stone = argv[1][65] - '0';
-    for (x = 1; x <= 8; x++) {
-        for (y = 1; y <= 8; y++) {
-            if (can_put_stone(GET_BOARD_I(x, y), stone, &board) != false) {
-                push_next_choices(GET_BOARD_I(x, y), next_choices);
-                count_next++;
-            }
-        }
-    }
+    count_next = get_next_choices(next_choices, stone, &board);
+
     if (count_next == 0) {
         printf("{\"x\":8,\"y\":0}");
     } else {
