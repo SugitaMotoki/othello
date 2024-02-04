@@ -1,5 +1,5 @@
 .PHONY: all
-all: random.out a01.out a02.out
+all: random.out a01.out a02.out a03.out
 
 random.out: random.o ../modules/board.o
 				indent -kr -ts255 random.c
@@ -11,6 +11,10 @@ a01.out: a01.o
 
 a02.out: a02.o ../modules/board.o
 				indent -kr -ts255 a02.c
+				gcc -o $@ $^
+
+a03.out: a03.o ../modules/board.o
+				indent -kr -ts255 a03.c
 				gcc -o $@ $^
 
 .PHONY: clean
