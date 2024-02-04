@@ -6,8 +6,10 @@
 #include "../modules/board.h"
 
 #define DEBUG_PRINT (false)
-#define MAX_DEPTH (4)
+#define MAX_DEPTH (6)
 #define ANOTHER_STONE(S) ((BLACK) + (WHITE) - (S))
+#define INFINITY (1000000)
+#define WIN_BONUS ((INFINITY) / (10))
 
 struct timeval tv;
 
@@ -15,7 +17,6 @@ typedef struct node {
     Board board;
     BoardState stone;
     BoardI board_i;
-    int point;
     char depth;
     struct node **children;
     struct node *best;
@@ -36,9 +37,9 @@ char position_score[BOARD_WIDTH * BOARD_HEIGHT] = {
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 };
 
-static int evaluate_terminal(Node * node)
+static int evaluate(Node * node)
 {
-    int point = 0;
+    int score = 0;
     char x, y, i;
     char my_stone = 0;
     char enemy_stone = 0;
@@ -47,28 +48,29 @@ static int evaluate_terminal(Node * node)
         for (y = 1; y < BOARD_WIDTH - 1; y++) {
             i = GET_BOARD_I(x, y);
             if (node->board.array[i] == node->stone) {
-                point += position_score[i];
+                score += position_score[i];
                 my_stone++;
             } else if (node->board.array[i] != EMPTY) {
-                point -= position_score[i];
+                score -= position_score[i];
                 enemy_stone++;
             }
         }
     }
 
     if (enemy_stone == 0) {
-        point += 100000;
+        score += WIN_BONUS;
     } else if (my_stone == 0) {
-        point -= 100000;
+        score -= WIN_BONUS;
     } else if (my_stone + enemy_stone == FIELD_SIZE * FIELD_SIZE) {
-        point += (my_stone - enemy_stone) * 1000;
+        score += (my_stone - enemy_stone) * WIN_BONUS / 100;
     }
 
     if (DEBUG_PRINT != false) {
-        printf("depth: %d, board_i: %d, point: %d\n", node->depth,
-               node->board_i, point);
+        printf("depth: %d, board_i: %d, score: %d\n", node->depth,
+               node->board_i, score);
     }
-    return point;
+
+    return score;
 }
 
 static Node *create_child_node(const Node * parent, const BoardI board_i)
@@ -84,11 +86,13 @@ static Node *create_child_node(const Node * parent, const BoardI board_i)
     return child;
 }
 
-static int negamax(Node * node, const bool is_pass)
+static int negaalpha(Node * node, int alpha, int beta, const bool is_pass)
 {
     char i, number_of_child;
     BoardI next_choices[FIELD_SIZE * FIELD_SIZE] = { -1 };
-    int tmp_point, best_point, seed;
+    int tmp_score;
+    int best_score = -INFINITY;
+    int seed;
 
     if (DEBUG_PRINT != false) {
         printf("---------------------\n");
@@ -98,7 +102,7 @@ static int negamax(Node * node, const bool is_pass)
     }
 
     if (node->depth == MAX_DEPTH) {
-        return evaluate_terminal(node);
+        return evaluate(node);
     }
 
     number_of_child =
@@ -110,25 +114,39 @@ static int negamax(Node * node, const bool is_pass)
             return 0;
         } else {
             if (is_pass != false) {
-                return evaluate_terminal(node);
+                return evaluate(node);
             }
             node->children = malloc(sizeof(Node *));
             node->children[0] = create_child_node(node, -1);
-            best_point = -negamax(node->children[0], true);
+            best_score =
+                -negaalpha(node->children[0], -beta, -alpha, true);
         }
     } else {
         node->children = malloc(sizeof(Node *) * number_of_child);
         for (i = 0; i < number_of_child; i++) {
             node->children[i] = create_child_node(node, next_choices[i]);
-            tmp_point = -negamax(node->children[i], false);
-            if (i == 0 || tmp_point > best_point) {
-                best_point = tmp_point;
+            tmp_score =
+                -negaalpha(node->children[i], -beta, -alpha, false);
+            if (tmp_score >= beta) {
+                if (DEBUG_PRINT != false) {
+                    printf("depth: %d, board_i: %d, score: %d\n",
+                           node->depth, node->board_i, tmp_score);
+                }
+                return tmp_score;
+            } else if (tmp_score > alpha) {
+                alpha = tmp_score;
+            }
+
+            if (tmp_score > best_score) {
+                best_score = tmp_score;
                 node->best = node->children[i];
-            } else if (tmp_point == best_point) {
+            }
+
+            if (node->depth == 0 && tmp_score == best_score) {
                 gettimeofday(&tv, NULL);
                 srand(tv.tv_sec + tv.tv_usec);
-                if ((int) (rand() * 2.0 / (RAND_MAX + 1.0)) == 0) {
-                    best_point = tmp_point;
+                if ((int) (rand() * 100.0 / (RAND_MAX + 1.0)) == 0) {
+                    best_score = tmp_score;
                     node->best = node->children[i];
                 }
             }
@@ -136,11 +154,11 @@ static int negamax(Node * node, const bool is_pass)
     }
 
     if (DEBUG_PRINT != false) {
-        printf("depth: %d, board_i: %d, point: %d\n", node->depth,
-               node->board_i, best_point);
+        printf("depth: %d, board_i: %d, score: %d\n", node->depth,
+               node->board_i, best_score);
     }
 
-    return best_point;
+    return best_score;
 }
 
 static void init_root_node(char *input_str)
@@ -174,7 +192,7 @@ int main(int argc, char *argv[])
     }
 
     init_root_node(input_str);
-    negamax(&root, false);
+    negaalpha(&root, -INFINITY, INFINITY, false);
 
     if (root.best == NULL) {
         printf("{\"x\":8,\"y\":0}");
