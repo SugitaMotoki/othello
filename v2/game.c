@@ -22,8 +22,8 @@ Player player_a = {
 
 Player player_b = {
     WHITE,
-    "A02",
-    "a02",
+    "A03",
+    "a03",
     0,
     false,
 };
