@@ -20,7 +20,7 @@ char count_stone(const BoardState stone, const Board * board)
 
 void init_board(Board * board)
 {
-    int x, y;
+    char x, y;
 
     for (x = 0; x < BOARD_HEIGHT; x++) {
         for (y = 0; y < BOARD_WIDTH; y++) {
@@ -67,14 +67,14 @@ void print_board(const Board * board)
 {
     char x, y;
 
-    printf("  y\nx ");
+    printf(" ");
     for (y = 1; y < BOARD_WIDTH - 1; y++) {
         printf(" %d", y - 1);
     }
     printf("\n");
 
     for (x = 1; x < BOARD_HEIGHT - 1; x++) {
-        printf(" %d|", x - 1);
+        printf("%d|", x - 1);
         for (y = 1; y < BOARD_WIDTH - 1; y++) {
             print_board_state_icon(board->array[GET_BOARD_I(x, y)]);
             printf("|");
@@ -131,22 +131,49 @@ void reverse_stone(const BoardI board_i, const BoardState stone,
     }
 }
 
-bool put_stone(const BoardI board_i, const BoardState stone, Board * board)
+bool can_put_stone(const BoardI board_i, const BoardState stone,
+                   const Board * board)
 {
     if (board->array[board_i] != EMPTY) {
         return false;
-    }
-    if (can_reverse(board_i, stone, board) == false) {
+    } else if (can_reverse(board_i, stone, board) == false) {
         return false;
     }
-    board->array[board_i] = stone;
-    reverse_stone(board_i, stone, board);
     return true;
 }
 
-bool can_put_stone(const BoardI board_i, const BoardState stone,
-                   Board * board)
+void put_stone(const BoardI board_i, const BoardState stone, Board * board)
 {
-    Board tmp_board = *board;
-    return put_stone(board_i, stone, &tmp_board);
+    board->array[board_i] = stone;
+    reverse_stone(board_i, stone, board);
+}
+
+char count_next_choices(const BoardI *next_choices)
+{
+    char i = 0;
+    while (next_choices[i] != -1) {
+        i++;
+    }
+    return i;
+}
+
+char push_next_choices(BoardI *next_choices, const BoardI board_i)
+{
+    char i = count_next_choices(next_choices);
+    next_choices[i] = board_i;
+    next_choices[i + 1] = -1;
+    return i + 1;
+}
+
+char get_next_choices(BoardI *next_choices, const BoardState stone, const Board * board)
+{
+    char x, y, count = 0;
+    for (x = 1; x < BOARD_HEIGHT - 1; x++) {
+        for (y = 1; y < BOARD_WIDTH - 1; y++) {
+            if (can_put_stone(GET_BOARD_I(x, y), stone, board) != false) {
+                push_next_choices(next_choices, GET_BOARD_I(x, y));
+            }
+        }
+    }
+    return count_next_choices(next_choices);
 }

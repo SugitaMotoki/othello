@@ -3,7 +3,7 @@ PROGRAM = $(NAME).out
 OBJS = $(NAME).o modules/board.o
 
 .PHONY: all
-all: $(PROGRAM)
+all: $(PROGRAM) agents
 
 $(PROGRAM): $(OBJS)
 				gcc -o $@ $^
@@ -11,6 +11,10 @@ $(PROGRAM): $(OBJS)
 indent: $(NAME).c
 				indent -kr -ts255 $^
 				make -C ./modules indent
+
+.PHONY: agents
+agents:
+				make -C ./agents
 
 .PHONY: clean
 clean:
