@@ -33,13 +33,13 @@ void init_board(Board * board)
         }
     }
 
-    board->array[GET_BOARD_I(BOARD_HEIGHT / 2, BOARD_WIDTH / 2)] = WHITE;
+    board->array[GET_BOARD_I(BOARD_HEIGHT / 2, BOARD_WIDTH / 2)] = BLACK;
     board->array[GET_BOARD_I
-                 ((BOARD_HEIGHT / 2) - 1, (BOARD_WIDTH / 2) - 1)] = WHITE;
+                 ((BOARD_HEIGHT / 2) - 1, (BOARD_WIDTH / 2) - 1)] = BLACK;
     board->array[GET_BOARD_I((BOARD_HEIGHT / 2) - 1, (BOARD_WIDTH / 2))] =
-        BLACK;
+        WHITE;
     board->array[GET_BOARD_I((BOARD_HEIGHT / 2), (BOARD_WIDTH / 2) - 1)] =
-        BLACK;
+        WHITE;
 }
 
 void print_board_state_icon(const BoardState state)
