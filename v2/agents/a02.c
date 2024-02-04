@@ -88,7 +88,7 @@ static int negamax(Node * node, const bool is_pass)
 {
     char i, number_of_child;
     BoardI next_choices[FIELD_SIZE * FIELD_SIZE] = { -1 };
-    int child_point, best_point;
+    int child_point, best_point, seed;
 
     if (DEBUG_PRINT != false) {
         printf("---------------------\n");
@@ -124,6 +124,13 @@ static int negamax(Node * node, const bool is_pass)
             if (i == 0 || child_point > best_point) {
                 best_point = child_point;
                 node->best = node->children[i];
+            } else if (child_point == best_point) {
+                gettimeofday(&tv, NULL);
+                srand(tv.tv_sec + tv.tv_usec);
+                if ((int) (rand() * 2.0 / (RAND_MAX + 1.0)) == 0) {
+                    best_point = child_point;
+                    node->best = node->children[i];
+                }
             }
         }
     }
